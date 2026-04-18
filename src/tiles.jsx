@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Ring, Bar } from './primitives.jsx';
-import { DAYS, SLEEP_DATA, WEEK_ACTIVITY, GOALS, save, loadWater } from './data.js';
+import { DAYS, SLEEP_DATA, WEEK_ACTIVITY, GOALS } from './data.js';
+import { getLog, putLog } from './api.js';
+
+const TODAY = DAYS.find((d) => d.isToday)?.iso || new Date().toISOString().slice(0, 10);
 
 export function DayStrip({ activeIso, onSelect }) {
   return (
@@ -99,12 +102,16 @@ export function SleepTile() {
 }
 
 export function WaterTile() {
-  const [cups, setCups] = useState(() => loadWater());
+  const [cups, setCups] = useState(0);
+
+  useEffect(() => {
+    getLog(TODAY).then((log) => setCups(log.water || 0)).catch(() => {});
+  }, []);
 
   const handleCup = (i) => {
     const next = i + 1 === cups ? i : i + 1;
     setCups(next);
-    save('hf_water', next);
+    putLog(TODAY, { water: next }).catch(() => {});
   };
 
   return (

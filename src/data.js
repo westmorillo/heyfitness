@@ -145,15 +145,8 @@ function load(key, fallback) {
   }
 }
 
-export function save(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
-}
+export const DEFAULT_FEEL = { mood: 'ok', dig: { GAS: 'bad', NONE: 'good' }, oth: {}, energy: 6, sleepQ: 7, notes: '' };
 
-export function loadWorkout() { return load('hf_workout', DEFAULT_WORKOUT); }
-export function loadMeals() { return load('hf_meals', DEFAULT_MEALS); }
-export function loadWater() { return load('hf_water', 5); }
-export function loadFeel() {
-  return load('hf_feel', { mood: 'ok', dig: { GAS: 'bad', NONE: 'good' }, oth: {}, energy: 6, sleepQ: 7, notes: '' });
-}
-export function loadUnit() { return load('hf_unit', 'lb'); }
-export function loadTheme() { return load('hf_theme', 'dark'); }
+// Legacy localStorage helpers kept for MobileDashboard static data
+export function loadMeals() { return DEFAULT_MEALS; }
+export function loadWorkout() { return DEFAULT_WORKOUT; }

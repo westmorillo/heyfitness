@@ -5,7 +5,9 @@ import { WorkoutPanel } from './workout.jsx';
 import { NutritionPanel } from './nutrition.jsx';
 import { FeelPanel } from './feel.jsx';
 import { OverviewSummary } from './overview.jsx';
-import { DAYS, GOALS, SLEEP_DATA, loadUnit, loadTheme, save, loadMeals, loadWorkout } from './data.js';
+import { DAYS, GOALS, SLEEP_DATA, loadMeals, loadWorkout } from './data.js';
+import { getToken, clearToken, getMe, patchMe } from './api.js';
+import { AuthScreen } from './auth.jsx';
 import './styles.css';
 
 const TABS = [
@@ -16,7 +18,7 @@ const TABS = [
   { id: 'feel', label: 'FEEL' },
 ];
 
-function DesktopDashboard({ unit }) {
+function DesktopDashboard({ unit, user }) {
   const [tab, setTab] = useState('overview');
   const [activeDay, setActiveDay] = useState(() => DAYS.find((d) => d.isToday).iso);
 
@@ -30,7 +32,7 @@ function DesktopDashboard({ unit }) {
         <div className="topbar-right">
           <button className="icon-btn" title="Search">⌕</button>
           <button className="icon-btn" title="Notifications">◔</button>
-          <div className="avatar">JM</div>
+          <div className="avatar">{user?.username?.slice(0,2).toUpperCase() || 'JM'}</div>
         </div>
       </div>
 
@@ -101,7 +103,7 @@ function DesktopDashboard({ unit }) {
   );
 }
 
-function MobileDashboard({ unit }) {
+function MobileDashboard({ unit, user }) {
   const [tab, setTab] = useState('home');
   const [activeDay, setActiveDay] = useState(() => DAYS.find((d) => d.isToday).iso);
   const visibleDays = DAYS.slice(1, 6);
@@ -128,9 +130,9 @@ function MobileDashboard({ unit }) {
       <div className="m-header">
         <div>
           <div className="m-greet-eyebrow">{greetDate}</div>
-          <div className="m-greet">HEY, JM.</div>
+          <div className="m-greet">HEY, {user?.username?.toUpperCase() || 'JM'}.</div>
         </div>
-        <div className="avatar" style={{ width: 36, height: 36, fontSize: 12 }}>JM</div>
+        <div className="avatar" style={{ width: 36, height: 36, fontSize: 12 }}>{user?.username?.slice(0,2).toUpperCase() || 'JM'}</div>
       </div>
 
       {tab === 'home' && (
@@ -307,13 +309,22 @@ function MobileDashboard({ unit }) {
 }
 
 export default function App() {
-  const [unit, setUnit] = useState(loadUnit);
-  const [theme, setTheme] = useState(loadTheme);
+  const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [unit, setUnit] = useState('kg');
+  const [theme, setTheme] = useState('dark');
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
 
   useEffect(() => {
+    if (!getToken()) { setAuthChecked(true); return; }
+    getMe()
+      .then((u) => { setUser(u); setUnit(u.unit || 'kg'); setTheme(u.theme || 'dark'); })
+      .catch(() => { clearToken(); })
+      .finally(() => setAuthChecked(true));
+  }, []);
+
+  useEffect(() => {
     document.body.classList.toggle('light', theme === 'light');
-    save('hf_theme', theme);
   }, [theme]);
 
   useEffect(() => {
@@ -322,12 +333,19 @@ export default function App() {
     return () => window.removeEventListener('resize', handler);
   }, []);
 
-  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    patchMe({ theme: next }).catch(() => {});
+  };
   const toggleUnit = () => {
     const next = unit === 'lb' ? 'kg' : 'lb';
     setUnit(next);
-    save('hf_unit', next);
+    patchMe({ unit: next }).catch(() => {});
   };
+
+  if (!authChecked) return null;
+  if (!user) return <AuthScreen onLogin={(u) => { setUser(u); setUnit(u.unit || 'kg'); setTheme(u.theme || 'dark'); }} />;
 
   return (
     <>
@@ -366,8 +384,8 @@ export default function App() {
       )}
 
       {isMobile
-        ? <MobileDashboard unit={unit} />
-        : <DesktopDashboard unit={unit} />
+        ? <MobileDashboard unit={unit} user={user} />
+        : <DesktopDashboard unit={unit} user={user} />
       }
     </>
   );

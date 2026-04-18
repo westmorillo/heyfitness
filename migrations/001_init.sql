@@ -1,0 +1,33 @@
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  unit VARCHAR(5) DEFAULT 'kg',
+  theme VARCHAR(10) DEFAULT 'dark',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS goals (
+  user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  calories INTEGER DEFAULT 2400,
+  protein INTEGER DEFAULT 180,
+  carbs INTEGER DEFAULT 260,
+  fat INTEGER DEFAULT 75,
+  water INTEGER DEFAULT 8,
+  sleep INTEGER DEFAULT 8,
+  steps INTEGER DEFAULT 10000
+);
+
+CREATE TABLE IF NOT EXISTS daily_logs (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  workout JSONB,
+  meals JSONB DEFAULT '[]',
+  water INTEGER DEFAULT 0,
+  feel JSONB,
+  sleep JSONB,
+  steps INTEGER DEFAULT 0,
+  calories_burned INTEGER DEFAULT 0,
+  UNIQUE(user_id, date)
+);

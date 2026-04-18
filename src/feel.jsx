@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SliderLine } from './primitives.jsx';
-import { loadFeel, save } from './data.js';
+import { DEFAULT_FEEL } from './data.js';
+import { getLog, putLog } from './api.js';
+
+const TODAY = new Date().toISOString().slice(0, 10);
 
 const MOODS = [
   { id: 'drained', label: 'DRAINED', ico: '😮‍💨' },
@@ -19,12 +22,16 @@ function SymptomChip({ label, state, onClick }) {
 }
 
 export function FeelPanel() {
-  const [feel, setFeel] = useState(loadFeel);
+  const [feel, setFeel] = useState(DEFAULT_FEEL);
+
+  useEffect(() => {
+    getLog(TODAY).then((log) => { if (log.feel) setFeel(log.feel); }).catch(() => {});
+  }, []);
 
   const update = (patch) => {
     const next = { ...feel, ...patch };
     setFeel(next);
-    save('hf_feel', next);
+    putLog(TODAY, { feel: next }).catch(() => {});
   };
 
   const toggleSym = (field, map, k) => {

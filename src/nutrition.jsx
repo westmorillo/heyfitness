@@ -1,6 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Ring, Bar, Slider } from './primitives.jsx';
-import { loadMeals, FOOD_DB, GOALS, save } from './data.js';
+import { DEFAULT_MEALS, FOOD_DB, GOALS } from './data.js';
+import { getLog, putLog } from './api.js';
+
+const TODAY = new Date().toISOString().slice(0, 10);
 
 function MacroBar({ label, value, goal, color }) {
   return (
@@ -143,11 +146,15 @@ function FoodSearch({ open, onClose, onAdd }) {
 }
 
 export function NutritionPanel() {
-  const [meals, setMeals] = useState(loadMeals);
+  const [meals, setMeals] = useState(DEFAULT_MEALS);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchMealId, setSearchMealId] = useState(null);
 
-  const saveMeals = (next) => { setMeals(next); save('hf_meals', next); };
+  useEffect(() => {
+    getLog(TODAY).then((log) => { if (log.meals?.length) setMeals(log.meals); }).catch(() => {});
+  }, []);
+
+  const saveMeals = (next) => { setMeals(next); putLog(TODAY, { meals: next }).catch(() => {}); };
 
   const totals = useMemo(() => {
     let cal = 0, p = 0, c = 0, f = 0;

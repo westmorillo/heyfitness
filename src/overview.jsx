@@ -1,6 +1,9 @@
-import { useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Ring, Bar } from './primitives.jsx';
-import { loadWorkout, loadMeals, GOALS } from './data.js';
+import { DEFAULT_WORKOUT, DEFAULT_MEALS, GOALS } from './data.js';
+import { getLog } from './api.js';
+
+const TODAY = new Date().toISOString().slice(0, 10);
 
 function MacroBar({ label, value, goal, color }) {
   return (
@@ -15,8 +18,15 @@ function MacroBar({ label, value, goal, color }) {
 }
 
 export function OverviewSummary({ unit = 'lb' }) {
-  const workout = useMemo(loadWorkout, []);
-  const meals = useMemo(loadMeals, []);
+  const [workout, setWorkout] = useState(DEFAULT_WORKOUT);
+  const [meals, setMeals] = useState(DEFAULT_MEALS);
+
+  useEffect(() => {
+    getLog(TODAY).then((log) => {
+      if (log.workout) setWorkout(log.workout);
+      if (log.meals?.length) setMeals(log.meals);
+    }).catch(() => {});
+  }, []);
 
   const done = workout.exercises.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0);
   const total = workout.exercises.reduce((a, e) => a + e.sets.length, 0);
