@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Ring, Bar } from './primitives.jsx';
 import { DEFAULT_WORKOUT, DEFAULT_MEALS, GOALS } from './data.js';
 import { getLog } from './api.js';
