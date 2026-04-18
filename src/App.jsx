@@ -317,10 +317,11 @@ export default function App() {
 
   useEffect(() => {
     if (!getToken()) { setAuthChecked(true); return; }
+    const timeout = setTimeout(() => { clearToken(); setAuthChecked(true); }, 8000);
     getMe()
       .then((u) => { setUser(u); setUnit(u.unit || 'kg'); setTheme(u.theme || 'dark'); })
       .catch(() => { clearToken(); })
-      .finally(() => setAuthChecked(true));
+      .finally(() => { clearTimeout(timeout); setAuthChecked(true); });
   }, []);
 
   useEffect(() => {
@@ -344,7 +345,11 @@ export default function App() {
     patchMe({ unit: next }).catch(() => {});
   };
 
-  if (!authChecked) return null;
+  if (!authChecked) return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-base)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, letterSpacing: '0.1em', color: 'var(--fg-muted)' }}>CARGANDO...</div>
+    </div>
+  );
   if (!user) return <AuthScreen onLogin={(u) => { setUser(u); setUnit(u.unit || 'kg'); setTheme(u.theme || 'dark'); }} />;
 
   return (
