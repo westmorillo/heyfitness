@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Stepper } from './primitives.jsx';
-import { DEFAULT_WORKOUT } from './data.js';
 import { getLog, putLog } from './api.js';
 
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -93,7 +92,7 @@ function ExerciseCard({ ex, onToggleSet, onUpdateSet, onStartRest, unit }) {
 }
 
 export function WorkoutPanel({ unit = 'lb' }) {
-  const [workout, setWorkout] = useState(DEFAULT_WORKOUT);
+  const [workout, setWorkout] = useState(null);
   const [restRunning, setRestRunning] = useState(false);
 
   useEffect(() => {
@@ -101,6 +100,7 @@ export function WorkoutPanel({ unit = 'lb' }) {
   }, []);
 
   useEffect(() => {
+    if (!workout) return;
     const t = setTimeout(() => putLog(TODAY, { workout }).catch(() => {}), 600);
     return () => clearTimeout(t);
   }, [workout]);
@@ -130,6 +130,7 @@ export function WorkoutPanel({ unit = 'lb' }) {
   };
 
   const totals = useMemo(() => {
+    if (!workout) return { sets: 0, done: 0, vol: 0 };
     let sets = 0, done = 0, vol = 0;
     workout.exercises.forEach((e) => {
       sets += e.sets.length;
@@ -137,6 +138,20 @@ export function WorkoutPanel({ unit = 'lb' }) {
     });
     return { sets, done, vol };
   }, [workout]);
+
+  if (!workout) {
+    return (
+      <div className="panel workout-panel">
+        <div className="panel-head">
+          <div>
+            <div className="eyebrow">TRAINING</div>
+            <div className="panel-title">NO SESSION YET</div>
+          </div>
+        </div>
+        <div className="empty-state">No workout logged for today.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="panel workout-panel">

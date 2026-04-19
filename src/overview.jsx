@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Ring, Bar } from './primitives.jsx';
-import { DEFAULT_WORKOUT, DEFAULT_MEALS, GOALS } from './data.js';
+import { EMPTY_MEALS, GOALS } from './data.js';
 import { getLog } from './api.js';
 
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -18,8 +18,8 @@ function MacroBar({ label, value, goal, color }) {
 }
 
 export function OverviewSummary({ unit = 'lb' }) {
-  const [workout, setWorkout] = useState(DEFAULT_WORKOUT);
-  const [meals, setMeals] = useState(DEFAULT_MEALS);
+  const [workout, setWorkout] = useState(null);
+  const [meals, setMeals] = useState(EMPTY_MEALS);
 
   useEffect(() => {
     getLog(TODAY).then((log) => {
@@ -28,12 +28,12 @@ export function OverviewSummary({ unit = 'lb' }) {
     }).catch(() => {});
   }, []);
 
-  const done = workout.exercises.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0);
-  const total = workout.exercises.reduce((a, e) => a + e.sets.length, 0);
-  const vol = workout.exercises.reduce(
+  const done = workout ? workout.exercises.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0) : 0;
+  const total = workout ? workout.exercises.reduce((a, e) => a + e.sets.length, 0) : 0;
+  const vol = workout ? workout.exercises.reduce(
     (a, e) => a + e.sets.reduce((b, s) => b + (s.done ? s.weight * s.reps : 0), 0),
     0
-  );
+  ) : 0;
 
   const { cal, p, c, f } = useMemo(() => {
     let cal = 0, p = 0, c = 0, f = 0;
@@ -52,42 +52,48 @@ export function OverviewSummary({ unit = 'lb' }) {
         <div className="panel-head">
           <div>
             <div className="eyebrow">SESSION SUMMARY</div>
-            <div className="panel-title">{workout.name}</div>
+            <div className="panel-title">{workout ? workout.name : 'NO SESSION YET'}</div>
           </div>
-          <div className="panel-stats">
-            <div className="stat">
-              <div className="stat-num">{workout.duration}<span className="stat-unit">MIN</span></div>
-              <div className="stat-label">ELAPSED</div>
-            </div>
-            <div className="stat">
-              <div className="stat-num">{done}<span className="stat-unit">/{total}</span></div>
-              <div className="stat-label">SETS</div>
-            </div>
-            <div className="stat">
-              <div className="stat-num">{vol.toLocaleString()}<span className="stat-unit">{unit.toUpperCase()}</span></div>
-              <div className="stat-label">VOLUME</div>
-            </div>
-          </div>
-        </div>
-        <div className="overview-list">
-          {workout.exercises.map((e) => {
-            const d = e.sets.filter((s) => s.done).length;
-            return (
-              <div key={e.id} className="overview-row">
-                <div>
-                  <div className="overview-row-name">{e.name}</div>
-                  <div className="overview-row-meta">{d}/{e.targetSets} SETS · PR {e.pr}{unit}</div>
-                </div>
-                <div className="overview-progress">
-                  <div className="overview-progress-bar">
-                    <div className="overview-progress-fill" style={{ width: `${(d / e.targetSets) * 100}%` }} />
-                  </div>
-                  <span>{Math.round((d / e.targetSets) * 100)}%</span>
-                </div>
+          {workout && (
+            <div className="panel-stats">
+              <div className="stat">
+                <div className="stat-num">{workout.duration}<span className="stat-unit">MIN</span></div>
+                <div className="stat-label">ELAPSED</div>
               </div>
-            );
-          })}
+              <div className="stat">
+                <div className="stat-num">{done}<span className="stat-unit">/{total}</span></div>
+                <div className="stat-label">SETS</div>
+              </div>
+              <div className="stat">
+                <div className="stat-num">{vol.toLocaleString()}<span className="stat-unit">{unit.toUpperCase()}</span></div>
+                <div className="stat-label">VOLUME</div>
+              </div>
+            </div>
+          )}
         </div>
+        {workout ? (
+          <div className="overview-list">
+            {workout.exercises.map((e) => {
+              const d = e.sets.filter((s) => s.done).length;
+              return (
+                <div key={e.id} className="overview-row">
+                  <div>
+                    <div className="overview-row-name">{e.name}</div>
+                    <div className="overview-row-meta">{d}/{e.targetSets} SETS · PR {e.pr}{unit}</div>
+                  </div>
+                  <div className="overview-progress">
+                    <div className="overview-progress-bar">
+                      <div className="overview-progress-fill" style={{ width: `${(d / e.targetSets) * 100}%` }} />
+                    </div>
+                    <span>{Math.round((d / e.targetSets) * 100)}%</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="empty-state">No workout logged for today.</div>
+        )}
       </div>
 
       <div className="panel">

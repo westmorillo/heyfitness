@@ -5,7 +5,8 @@ import { WorkoutPanel } from './workout.jsx';
 import { NutritionPanel } from './nutrition.jsx';
 import { FeelPanel } from './feel.jsx';
 import { OverviewSummary } from './overview.jsx';
-import { DAYS, GOALS, SLEEP_DATA, loadMeals, loadWorkout } from './data.js';
+import { DAYS, GOALS } from './data.js';
+import { getLog } from './api.js';
 import { getToken, clearToken, getMe, patchMe } from './api.js';
 import { AuthScreen } from './auth.jsx';
 import './styles.css';
@@ -18,7 +19,58 @@ const TABS = [
   { id: 'feel', label: 'FEEL' },
 ];
 
-function DesktopDashboard({ unit, user }) {
+function AvatarMenu({ user, onLogout }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ position: 'relative' }}>
+      <div
+        className="avatar"
+        onClick={() => setOpen((o) => !o)}
+        style={{ cursor: 'pointer' }}
+      >
+        {user?.username?.slice(0, 2).toUpperCase() || '??'}
+      </div>
+      {open && (
+        <>
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 299 }}
+            onClick={() => setOpen(false)}
+          />
+          <div style={{
+            position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 300,
+            background: 'var(--bg-elev)', border: '1px solid var(--stroke)',
+            borderRadius: 8, minWidth: 160, padding: '8px 0',
+          }}>
+            <div style={{
+              padding: '8px 16px 10px',
+              fontFamily: 'var(--font-display)', fontSize: 11,
+              letterSpacing: '0.08em', color: 'var(--fg-muted)',
+              borderBottom: '1px solid var(--stroke)',
+            }}>
+              {user?.username?.toUpperCase()}
+            </div>
+            <button
+              onClick={() => { setOpen(false); onLogout(); }}
+              style={{
+                display: 'block', width: '100%', textAlign: 'left',
+                padding: '10px 16px', background: 'none', border: 'none',
+                fontFamily: 'var(--font-display)', fontSize: 11,
+                letterSpacing: '0.08em', color: 'var(--fg-base)',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+            >
+              SIGN OUT
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function DesktopDashboard({ unit, user, onLogout }) {
   const [tab, setTab] = useState('overview');
   const [activeDay, setActiveDay] = useState(() => DAYS.find((d) => d.isToday).iso);
 
@@ -32,7 +84,7 @@ function DesktopDashboard({ unit, user }) {
         <div className="topbar-right">
           <button className="icon-btn" title="Search">⌕</button>
           <button className="icon-btn" title="Notifications">◔</button>
-          <div className="avatar">{user?.username?.slice(0,2).toUpperCase() || 'JM'}</div>
+          <AvatarMenu user={user} onLogout={onLogout} />
         </div>
       </div>
 
@@ -103,13 +155,25 @@ function DesktopDashboard({ unit, user }) {
   );
 }
 
-function MobileDashboard({ unit, user }) {
+function MobileDashboard({ unit, user, onLogout }) {
   const [tab, setTab] = useState('home');
   const [activeDay, setActiveDay] = useState(() => DAYS.find((d) => d.isToday).iso);
   const visibleDays = DAYS.slice(1, 6);
+  const [meals, setMeals] = useState([]);
+  const [workout, setWorkout] = useState(null);
+  const [water, setWater] = useState(0);
 
-  const meals = useMemo(loadMeals, []);
-  const workout = useMemo(loadWorkout, []);
+  const TODAY_ISO = DAYS.find((d) => d.isToday)?.iso || new Date().toISOString().slice(0, 10);
+
+  useEffect(() => {
+    getLog(TODAY_ISO)
+      .then((log) => {
+        if (log.meals?.length) setMeals(log.meals);
+        if (log.workout) setWorkout(log.workout);
+        if (log.water) setWater(log.water);
+      })
+      .catch(() => {});
+  }, [TODAY_ISO]);
 
   const mealTotals = useMemo(() => {
     let cal = 0, p = 0, c = 0, f = 0;
@@ -130,9 +194,11 @@ function MobileDashboard({ unit, user }) {
       <div className="m-header">
         <div>
           <div className="m-greet-eyebrow">{greetDate}</div>
-          <div className="m-greet">HEY, {user?.username?.toUpperCase() || 'JM'}.</div>
+          <div className="m-greet">HEY, {user?.username?.toUpperCase() || ''}.</div>
         </div>
-        <div className="avatar" style={{ width: 36, height: 36, fontSize: 12 }}>{user?.username?.slice(0,2).toUpperCase() || 'JM'}</div>
+        <div style={{ position: 'relative' }}>
+          <AvatarMenu user={user} onLogout={onLogout} />
+        </div>
       </div>
 
       {tab === 'home' && (
@@ -148,29 +214,6 @@ function MobileDashboard({ unit, user }) {
                 <span className="m-day-num">{d.day}</span>
               </button>
             ))}
-          </div>
-
-          <div className="m-hero-card">
-            <div className="m-hero-rings">
-              <Ring value={642} max={800} size={120} stroke={10}>
-                <div className="ring-num" style={{ fontSize: 22 }}>642</div>
-                <div className="ring-label">KCAL OUT</div>
-              </Ring>
-              <div className="m-hero-metrics">
-                <div className="m-metric">
-                  <div className="m-metric-num">78<span className="m-metric-unit">min</span></div>
-                  <div className="m-metric-label">ACTIVE</div>
-                </div>
-                <div className="m-metric">
-                  <div className="m-metric-num">8,412</div>
-                  <div className="m-metric-label">STEPS</div>
-                </div>
-                <div className="m-metric">
-                  <div className="m-metric-num">12<span className="m-metric-unit">d</span></div>
-                  <div className="m-metric-label">STREAK</div>
-                </div>
-              </div>
-            </div>
           </div>
 
           <div className="m-actions">
@@ -218,39 +261,39 @@ function MobileDashboard({ unit, user }) {
 
           <div className="m-card m-card-workout">
             <div className="eyebrow">UP NEXT</div>
-            <div className="m-workout-title">{workout.name.split('—')[0].trim()}</div>
-            <div className="m-workout-sub">
-              {workout.name.split('—')[1]?.trim() || 'Training'} · {workout.exercises.length} exercises · ~{workout.duration} min
-            </div>
-            <div className="m-workout-exes">
-              {workout.exercises.map((e) => (
-                <div key={e.id} className="m-ex-row">
-                  <span className="m-ex-name">{e.name}</span>
-                  <span className="m-ex-sets">{e.targetSets}×</span>
+            {workout ? (
+              <>
+                <div className="m-workout-title">{workout.name.split('—')[0].trim()}</div>
+                <div className="m-workout-sub">
+                  {workout.name.split('—')[1]?.trim() || 'Training'} · {workout.exercises.length} exercises · ~{workout.duration} min
                 </div>
-              ))}
-            </div>
+                <div className="m-workout-exes">
+                  {workout.exercises.map((e) => (
+                    <div key={e.id} className="m-ex-row">
+                      <span className="m-ex-name">{e.name}</span>
+                      <span className="m-ex-sets">{e.targetSets}×</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="m-workout-title" style={{ opacity: 0.4, fontSize: 14 }}>NO WORKOUT LOGGED</div>
+            )}
           </div>
 
           <div className="m-row">
             <div className="m-card m-card-half">
-              <div className="eyebrow">SLEEP</div>
-              <div className="m-big-num">{SLEEP_DATA.last}<span className="m-big-unit">h</span></div>
-              <div className="sleep-bar" style={{ marginTop: 10 }}>
-                <div className="sleep-seg" style={{ width: '16%', background: 'var(--accent)' }} />
-                <div className="sleep-seg" style={{ width: '24%', background: '#E8E4DC' }} />
-                <div className="sleep-seg" style={{ width: '56%', background: '#8A8A8A' }} />
-                <div className="sleep-seg" style={{ width: '4%', background: '#3A3A3E' }} />
+              <div className="eyebrow">WATER</div>
+              <div className="m-big-num">{water}<span className="m-big-unit">/{GOALS.water}</span></div>
+              <div className="water-cups" style={{ gridTemplateColumns: 'repeat(8, 1fr)', gap: 3, marginTop: 10 }}>
+                {Array.from({ length: GOALS.water }).map((_, i) => (
+                  <div key={i} className={`cup ${i < water ? 'cup-filled' : ''}`} style={{ borderRadius: 3 }} />
+                ))}
               </div>
             </div>
             <div className="m-card m-card-half">
-              <div className="eyebrow">WATER</div>
-              <div className="m-big-num">5<span className="m-big-unit">/8</span></div>
-              <div className="water-cups" style={{ gridTemplateColumns: 'repeat(8, 1fr)', gap: 3, marginTop: 10 }}>
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className={`cup ${i < 5 ? 'cup-filled' : ''}`} style={{ borderRadius: 3 }} />
-                ))}
-              </div>
+              <div className="eyebrow">SLEEP</div>
+              <div className="m-big-num" style={{ opacity: 0.35 }}>—</div>
             </div>
           </div>
 
@@ -352,6 +395,8 @@ export default function App() {
   );
   if (!user) return <AuthScreen onLogin={(u) => { setUser(u); setUnit(u.unit || 'kg'); setTheme(u.theme || 'dark'); }} />;
 
+  const handleLogout = () => { clearToken(); setUser(null); };
+
   return (
     <>
       {!isMobile && (
@@ -389,8 +434,8 @@ export default function App() {
       )}
 
       {isMobile
-        ? <MobileDashboard unit={unit} user={user} />
-        : <DesktopDashboard unit={unit} user={user} />
+        ? <MobileDashboard unit={unit} user={user} onLogout={handleLogout} />
+        : <DesktopDashboard unit={unit} user={user} onLogout={handleLogout} />
       }
     </>
   );

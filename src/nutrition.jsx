@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Ring, Bar, Slider } from './primitives.jsx';
-import { DEFAULT_MEALS, FOOD_DB, GOALS } from './data.js';
+import { EMPTY_MEALS, FOOD_DB, GOALS } from './data.js';
 import { getLog, putLog } from './api.js';
 
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -146,7 +146,7 @@ function FoodSearch({ open, onClose, onAdd }) {
 }
 
 export function NutritionPanel() {
-  const [meals, setMeals] = useState(DEFAULT_MEALS);
+  const [meals, setMeals] = useState(EMPTY_MEALS);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchMealId, setSearchMealId] = useState(null);
 

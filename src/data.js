@@ -145,7 +145,14 @@ function load(key, fallback) {
   }
 }
 
-export const DEFAULT_FEEL = { mood: 'ok', dig: { GAS: 'bad', NONE: 'good' }, oth: {}, energy: 6, sleepQ: 7, notes: '' };
+export const DEFAULT_FEEL = { mood: null, dig: {}, oth: {}, energy: 5, sleepQ: 5, notes: '' };
+
+export const EMPTY_MEALS = [
+  { id: 'm1', name: 'BREAKFAST', time: '07:40', items: [] },
+  { id: 'm2', name: 'LUNCH', time: '12:15', items: [] },
+  { id: 'm3', name: 'SNACK', time: '15:30', items: [] },
+  { id: 'm4', name: 'DINNER', time: '19:00', items: [] },
+];
 
 // Legacy localStorage helpers kept for MobileDashboard static data
 export function loadMeals() { return DEFAULT_MEALS; }
