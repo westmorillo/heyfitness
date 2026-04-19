@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { Stepper } from './primitives.jsx';
 import { getLog, putLog } from './api.js';
 
-const TODAY = new Date().toISOString().slice(0, 10);
 
 function RestTimer({ running, seconds, onComplete, onCancel }) {
   const [remaining, setRemaining] = useState(seconds);
@@ -91,19 +90,21 @@ function ExerciseCard({ ex, onToggleSet, onUpdateSet, onStartRest, unit }) {
   );
 }
 
-export function WorkoutPanel({ unit = 'lb' }) {
+export function WorkoutPanel({ unit = 'lb', date }) {
   const [workout, setWorkout] = useState(null);
   const [restRunning, setRestRunning] = useState(false);
 
   useEffect(() => {
-    getLog(TODAY).then((log) => { if (log.workout) setWorkout(log.workout); }).catch(() => {});
-  }, []);
+    setWorkout(null);
+    if (!date) return;
+    getLog(date).then((log) => { if (log.workout) setWorkout(log.workout); }).catch(() => {});
+  }, [date]);
 
   useEffect(() => {
-    if (!workout) return;
-    const t = setTimeout(() => putLog(TODAY, { workout }).catch(() => {}), 600);
+    if (!workout || !date) return;
+    const t = setTimeout(() => putLog(date, { workout }).catch(() => {}), 600);
     return () => clearTimeout(t);
-  }, [workout]);
+  }, [workout, date]);
 
   const toggleSet = (exId, idx) => {
     setWorkout((w) => ({

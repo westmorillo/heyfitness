@@ -101,17 +101,19 @@ export function SleepTile() {
   );
 }
 
-export function WaterTile() {
+export function WaterTile({ date }) {
   const [cups, setCups] = useState(0);
 
   useEffect(() => {
-    getLog(TODAY).then((log) => setCups(log.water || 0)).catch(() => {});
-  }, []);
+    setCups(0);
+    if (!date) return;
+    getLog(date).then((log) => setCups(log.water || 0)).catch(() => {});
+  }, [date]);
 
   const handleCup = (i) => {
     const next = i + 1 === cups ? i : i + 1;
     setCups(next);
-    putLog(TODAY, { water: next }).catch(() => {});
+    if (date) putLog(date, { water: next }).catch(() => {});
   };
 
   return (

@@ -3,7 +3,6 @@ import { Ring, Bar } from './primitives.jsx';
 import { EMPTY_MEALS, GOALS } from './data.js';
 import { getLog } from './api.js';
 
-const TODAY = new Date().toISOString().slice(0, 10);
 
 function MacroBar({ label, value, goal, color }) {
   return (
@@ -17,16 +16,19 @@ function MacroBar({ label, value, goal, color }) {
   );
 }
 
-export function OverviewSummary({ unit = 'lb' }) {
+export function OverviewSummary({ unit = 'lb', date }) {
   const [workout, setWorkout] = useState(null);
   const [meals, setMeals] = useState(EMPTY_MEALS);
 
   useEffect(() => {
-    getLog(TODAY).then((log) => {
+    setWorkout(null);
+    setMeals(EMPTY_MEALS);
+    if (!date) return;
+    getLog(date).then((log) => {
       if (log.workout) setWorkout(log.workout);
       if (log.meals?.length) setMeals(log.meals);
     }).catch(() => {});
-  }, []);
+  }, [date]);
 
   const done = workout ? workout.exercises.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0) : 0;
   const total = workout ? workout.exercises.reduce((a, e) => a + e.sets.length, 0) : 0;

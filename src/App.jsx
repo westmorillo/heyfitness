@@ -102,12 +102,12 @@ function DesktopDashboard({ unit, user, onLogout }) {
       {tab === 'overview' && (
         <div className="grid">
           <div className="grid-col">
-            <OverviewSummary unit={unit} />
+            <OverviewSummary unit={unit} date={activeDay} />
           </div>
           <div className="grid-col">
             <div className="grid" style={{ gap: 12 }}>
               <div className="grid-col"><SleepTile /></div>
-              <div className="grid-col"><WaterTile /></div>
+              <div className="grid-col"><WaterTile date={activeDay} /></div>
             </div>
             <WeekTile />
             <StreakTile />
@@ -117,7 +117,7 @@ function DesktopDashboard({ unit, user, onLogout }) {
 
       {tab === 'train' && (
         <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr' }}>
-          <div className="grid-col"><WorkoutPanel unit={unit} /></div>
+          <div className="grid-col"><WorkoutPanel unit={unit} date={activeDay} /></div>
           <div className="grid-col">
             <WeekTile />
             <StreakTile />
@@ -127,9 +127,9 @@ function DesktopDashboard({ unit, user, onLogout }) {
 
       {tab === 'fuel' && (
         <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr' }}>
-          <div className="grid-col"><NutritionPanel /></div>
+          <div className="grid-col"><NutritionPanel date={activeDay} /></div>
           <div className="grid-col">
-            <WaterTile />
+            <WaterTile date={activeDay} />
             <StreakTile />
           </div>
         </div>
@@ -138,13 +138,13 @@ function DesktopDashboard({ unit, user, onLogout }) {
       {tab === 'recover' && (
         <div className="grid">
           <div className="grid-col"><SleepTile /></div>
-          <div className="grid-col"><WaterTile /></div>
+          <div className="grid-col"><WaterTile date={activeDay} /></div>
         </div>
       )}
 
       {tab === 'feel' && (
         <div className="grid" style={{ gridTemplateColumns: '1.2fr 1fr' }}>
-          <div className="grid-col"><FeelPanel /></div>
+          <div className="grid-col"><FeelPanel date={activeDay} /></div>
           <div className="grid-col">
             <SleepTile />
             <StreakTile />
