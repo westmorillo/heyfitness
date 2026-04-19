@@ -749,3 +749,290 @@ input, textarea { font-family: inherit; }
 
 .m-stats-view .tile { margin-bottom: 12px; }
 .m-feel-view .panel { margin-bottom: 0; }
+
+/* ── Settings Panel ──────────────────────────────── */
+.settings-panel {
+  min-height: 100vh;
+  background: var(--bg-base);
+  padding: 0 0 60px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--stroke);
+}
+.settings-back {
+  background: none;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--fg-muted);
+  cursor: pointer;
+  padding: 6px 0;
+}
+.settings-back:hover { color: var(--fg-base); }
+.settings-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: 0.05em;
+}
+.settings-section {
+  padding: 24px 24px 0;
+}
+.settings-section-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--fg-muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.settings-calculated-badge {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  letter-spacing: 0.08em;
+}
+.settings-tdee-note {
+  font-size: 12px;
+  color: var(--fg-muted);
+  margin: -8px 0 16px;
+}
+.settings-field {
+  margin-bottom: 16px;
+}
+.settings-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--fg-muted);
+  margin-bottom: 6px;
+}
+.settings-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.settings-input {
+  width: 100%;
+  background: var(--bg-elev);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--fg-base);
+  outline: none;
+}
+.settings-input:focus { border-color: var(--accent); }
+.settings-unit {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.settings-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.settings-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.settings-sex-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.settings-sex-btn {
+  flex: 1;
+  padding: 10px;
+  background: var(--bg-elev);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.settings-sex-btn.settings-sex-active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.settings-option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.settings-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--bg-elev);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+}
+.settings-option.settings-option-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.settings-option-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--fg-base);
+}
+.settings-option-sub {
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+.settings-option-row {
+  display: flex;
+  gap: 8px;
+}
+.settings-obj-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  background: var(--bg-elev);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.settings-obj-btn.settings-obj-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.settings-obj-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--fg-base);
+}
+.settings-obj-sub {
+  font-size: 10px;
+  color: var(--fg-muted);
+  text-align: center;
+}
+.settings-panel .btn-wide {
+  display: block;
+  margin: 28px 24px 0;
+  width: calc(100% - 48px);
+}
+
+/* ── FoodSearch custom food additions ──────────────── */
+.chip-add {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.food-row-wrap {
+  display: flex;
+  align-items: stretch;
+  position: relative;
+}
+.food-row-wrap .food-row {
+  flex: 1;
+}
+.food-delete-btn {
+  background: none;
+  border: none;
+  border-left: 1px solid var(--stroke-subtle);
+  padding: 0 12px;
+  font-size: 18px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  line-height: 1;
+}
+.food-delete-btn:hover { color: var(--danger); }
+.food-custom-badge {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 1px 4px;
+  vertical-align: middle;
+}
+.new-food-form {
+  padding: 0 20px 20px;
+}
+.new-food-form-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--fg-muted);
+  margin-bottom: 16px;
+}
+.nff-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.nff-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.nff-field.nff-wide { flex: 2; }
+.nff-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--fg-muted);
+}
+.nff-input {
+  background: var(--bg-elev);
+  border: 1px solid var(--stroke);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--fg-base);
+  outline: none;
+  width: 100%;
+}
+.nff-input:focus { border-color: var(--accent); }
+.nff-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+.nff-cancel {
+  background: none;
+  border: 1px solid var(--stroke);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.nff-cancel:hover { border-color: var(--stroke-strong); color: var(--fg-base); }
+.btn-loading { opacity: 0.6; cursor: wait; }

@@ -37,3 +37,9 @@ export const putLog = (date, data) => apiFetch(`/logs/${date}`, { method: 'PUT',
 export const getGoals = () => apiFetch('/goals');
 
 export const putGoals = (data) => apiFetch('/goals', { method: 'PUT', body: data });
+
+export const getFoods = () => apiFetch('/foods');
+
+export const postFood = (food) => apiFetch('/foods', { method: 'POST', body: food });
+
+export const deleteFood = (id) => apiFetch(`/foods/${id}`, { method: 'DELETE' });

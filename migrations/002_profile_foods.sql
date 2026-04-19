@@ -1,0 +1,24 @@
+DO $$ BEGIN
+  ALTER TABLE users
+    ADD COLUMN weight NUMERIC,
+    ADD COLUMN goal_weight NUMERIC,
+    ADD COLUMN height NUMERIC,
+    ADD COLUMN age INTEGER,
+    ADD COLUMN sex VARCHAR(10),
+    ADD COLUMN activity_level VARCHAR(20),
+    ADD COLUMN objective VARCHAR(20);
+EXCEPTION WHEN duplicate_column THEN NULL;
+END $$;
+
+CREATE TABLE IF NOT EXISTS custom_foods (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  brand TEXT DEFAULT '',
+  serving TEXT DEFAULT '1 serving',
+  cal INTEGER NOT NULL,
+  p NUMERIC DEFAULT 0,
+  c NUMERIC DEFAULT 0,
+  f NUMERIC DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);

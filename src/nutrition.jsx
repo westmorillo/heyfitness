@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Ring, Bar, Slider } from './primitives.jsx';
 import { EMPTY_MEALS, FOOD_DB, GOALS } from './data.js';
-import { getLog, putLog } from './api.js';
+import { getLog, putLog, getFoods, postFood, deleteFood } from './api.js';
 
 
 function MacroBar({ label, value, goal, color }) {
@@ -88,13 +88,61 @@ function MealCard({ meal, onUpdateItem, onRemoveItem, onOpenSearch }) {
   );
 }
 
+const EMPTY_FORM = { name: '', brand: '', serving: '1 serving', cal: '', p: '', c: '', f: '' };
+
 function FoodSearch({ open, onClose, onAdd }) {
   const [q, setQ] = useState('');
+  const [activeTab, setActiveTab] = useState('RECENT');
+  const [customFoods, setCustomFoods] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!open) { setQ(''); setShowForm(false); setForm(EMPTY_FORM); return; }
+    getFoods().then(setCustomFoods).catch(() => {});
+  }, [open]);
+
+  const allFoods = useMemo(() => {
+    const custom = customFoods.map((f) => ({ ...f, isCustom: true }));
+    return activeTab === 'CUSTOM' ? custom : [...FOOD_DB, ...custom];
+  }, [customFoods, activeTab]);
+
   const results = useMemo(() => {
-    if (!q.trim()) return FOOD_DB.slice(0, 6);
+    if (!q.trim()) return allFoods.slice(0, 8);
     const t = q.toLowerCase();
-    return FOOD_DB.filter((f) => f.name.toLowerCase().includes(t) || f.brand.toLowerCase().includes(t));
-  }, [q]);
+    return allFoods.filter((f) => f.name.toLowerCase().includes(t) || (f.brand || '').toLowerCase().includes(t));
+  }, [q, allFoods]);
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteFood(id);
+      setCustomFoods((prev) => prev.filter((f) => f.id !== id));
+    } catch {}
+  };
+
+  const handleSaveFood = async () => {
+    if (!form.name || !form.cal) return;
+    setSaving(true);
+    try {
+      const saved = await postFood({
+        name: form.name,
+        brand: form.brand,
+        serving: form.serving,
+        cal: +form.cal,
+        p: +(form.p || 0),
+        c: +(form.c || 0),
+        f: +(form.f || 0),
+      });
+      setCustomFoods((prev) => [saved, ...prev]);
+      setShowForm(false);
+      setForm(EMPTY_FORM);
+      setActiveTab('CUSTOM');
+    } catch {}
+    setSaving(false);
+  };
+
+  const fSet = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   if (!open) return null;
 
@@ -108,46 +156,116 @@ function FoodSearch({ open, onClose, onAdd }) {
           </div>
           <button className="icon-btn" onClick={onClose} style={{ width: 32, height: 32, fontSize: 18 }}>×</button>
         </div>
-        <div className="search-input-wrap">
-          <input
-            className="search-input"
-            placeholder="Search foods, brands, recent..."
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            autoFocus
-          />
-        </div>
-        <div className="search-chips">
-          {['RECENT', 'FAVORITES', 'CUSTOM', 'SCAN'].map((c) => (
-            <button key={c} className={`chip ${c === 'RECENT' ? 'chip-active' : ''}`}>{c}</button>
-          ))}
-        </div>
-        <div className="search-results">
-          {results.map((f) => (
-            <button key={f.id} className="food-row" onClick={() => onAdd({ ...f, portion: 1 })}>
-              <div>
-                <div className="food-name">{f.name}</div>
-                <div className="food-brand">{f.brand} · {f.serving}</div>
+
+        {!showForm ? (
+          <>
+            <div className="search-input-wrap">
+              <input
+                className="search-input"
+                placeholder="Search foods, brands..."
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className="search-chips">
+              {['RECENT', 'CUSTOM'].map((c) => (
+                <button
+                  key={c}
+                  className={`chip ${activeTab === c ? 'chip-active' : ''}`}
+                  onClick={() => setActiveTab(c)}
+                >
+                  {c}
+                </button>
+              ))}
+              <button className="chip chip-add" onClick={() => setShowForm(true)}>+ NEW FOOD</button>
+            </div>
+            <div className="search-results">
+              {results.map((f) => (
+                <div key={f.id} className="food-row-wrap">
+                  <button className="food-row" onClick={() => onAdd({ ...f, portion: 1 })}>
+                    <div>
+                      <div className="food-name">
+                        {f.name}
+                        {f.isCustom && <span className="food-custom-badge">CUSTOM</span>}
+                      </div>
+                      <div className="food-brand">{f.brand} · {f.serving}</div>
+                    </div>
+                    <div className="food-cal">
+                      <div className="food-cal-num">{f.cal}</div>
+                      <div className="food-cal-unit">KCAL</div>
+                    </div>
+                  </button>
+                  {f.isCustom && (
+                    <button className="food-delete-btn" onClick={() => handleDelete(f.id)} title="Delete">×</button>
+                  )}
+                </div>
+              ))}
+              {results.length === 0 && (
+                <div className="empty-state">No matches. Try creating a custom food.</div>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="new-food-form">
+            <div className="new-food-form-title">NEW CUSTOM FOOD</div>
+            <div className="nff-row">
+              <div className="nff-field nff-wide">
+                <label className="nff-label">NAME *</label>
+                <input className="nff-input" value={form.name} onChange={(e) => fSet('name', e.target.value)} placeholder="e.g. Chicken breast" />
               </div>
-              <div className="food-cal">
-                <div className="food-cal-num">{f.cal}</div>
-                <div className="food-cal-unit">KCAL</div>
+            </div>
+            <div className="nff-row">
+              <div className="nff-field nff-wide">
+                <label className="nff-label">BRAND</label>
+                <input className="nff-input" value={form.brand} onChange={(e) => fSet('brand', e.target.value)} placeholder="e.g. Generic" />
               </div>
-            </button>
-          ))}
-          {results.length === 0 && (
-            <div className="empty-state">No matches. Try "chicken" or "yogurt".</div>
-          )}
-        </div>
+              <div className="nff-field">
+                <label className="nff-label">SERVING</label>
+                <input className="nff-input" value={form.serving} onChange={(e) => fSet('serving', e.target.value)} placeholder="100g" />
+              </div>
+            </div>
+            <div className="nff-row">
+              <div className="nff-field">
+                <label className="nff-label">KCAL *</label>
+                <input className="nff-input" type="number" min="0" value={form.cal} onChange={(e) => fSet('cal', e.target.value)} />
+              </div>
+              <div className="nff-field">
+                <label className="nff-label">PROTEIN (G)</label>
+                <input className="nff-input" type="number" min="0" value={form.p} onChange={(e) => fSet('p', e.target.value)} />
+              </div>
+              <div className="nff-field">
+                <label className="nff-label">CARBS (G)</label>
+                <input className="nff-input" type="number" min="0" value={form.c} onChange={(e) => fSet('c', e.target.value)} />
+              </div>
+              <div className="nff-field">
+                <label className="nff-label">FAT (G)</label>
+                <input className="nff-input" type="number" min="0" value={form.f} onChange={(e) => fSet('f', e.target.value)} />
+              </div>
+            </div>
+            <div className="nff-actions">
+              <button className="nff-cancel" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }}>CANCEL</button>
+              <button
+                className="btn-primary"
+                onClick={handleSaveFood}
+                disabled={saving || !form.name || !form.cal}
+              >
+                {saving ? 'SAVING...' : 'SAVE FOOD'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-export function NutritionPanel({ date }) {
+export function NutritionPanel({ date, goals }) {
   const [meals, setMeals] = useState(EMPTY_MEALS);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchMealId, setSearchMealId] = useState(null);
+
+  const G = goals || GOALS;
 
   useEffect(() => {
     setMeals(EMPTY_MEALS);
@@ -190,7 +308,7 @@ export function NutritionPanel({ date }) {
     setSearchOpen(false);
   };
 
-  const remaining = Math.max(0, GOALS.calories - totals.cal);
+  const remaining = Math.max(0, G.calories - totals.cal);
 
   return (
     <div className="panel nutrition-panel">
@@ -200,7 +318,7 @@ export function NutritionPanel({ date }) {
           <div className="panel-title">TODAY'S FUEL</div>
         </div>
         <div className="calorie-summary">
-          <Ring value={totals.cal} max={GOALS.calories} size={140} stroke={12}>
+          <Ring value={totals.cal} max={G.calories} size={140} stroke={12}>
             <div className="ring-num">{Math.round(remaining)}</div>
             <div className="ring-label">KCAL LEFT</div>
           </Ring>
@@ -208,9 +326,9 @@ export function NutritionPanel({ date }) {
       </div>
 
       <div className="macro-grid">
-        <MacroBar label="PROTEIN" value={totals.p} goal={GOALS.protein} color="var(--accent)" />
-        <MacroBar label="CARBS" value={totals.c} goal={GOALS.carbs} color="#E8E4DC" />
-        <MacroBar label="FAT" value={totals.f} goal={GOALS.fat} color="#8A8A8A" />
+        <MacroBar label="PROTEIN" value={totals.p} goal={G.protein} color="var(--accent)" />
+        <MacroBar label="CARBS" value={totals.c} goal={G.carbs} color="#E8E4DC" />
+        <MacroBar label="FAT" value={totals.f} goal={G.fat} color="#8A8A8A" />
       </div>
 
       <div className="meal-list">

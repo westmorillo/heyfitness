@@ -5,9 +5,9 @@ import { WorkoutPanel } from './workout.jsx';
 import { NutritionPanel } from './nutrition.jsx';
 import { FeelPanel } from './feel.jsx';
 import { OverviewSummary } from './overview.jsx';
+import { SettingsPanel } from './settings.jsx';
 import { DAYS, GOALS } from './data.js';
-import { getLog } from './api.js';
-import { getToken, clearToken, getMe, patchMe } from './api.js';
+import { getToken, clearToken, getMe, patchMe, getLog, getGoals } from './api.js';
 import { AuthScreen } from './auth.jsx';
 import './styles.css';
 
@@ -19,23 +19,32 @@ const TABS = [
   { id: 'feel', label: 'FEEL' },
 ];
 
-function AvatarMenu({ user, onLogout }) {
+function AvatarMenu({ user, onLogout, onSettings }) {
   const [open, setOpen] = useState(false);
+  const menuItem = (label, action, danger = false) => (
+    <button
+      onClick={() => { setOpen(false); action(); }}
+      style={{
+        display: 'block', width: '100%', textAlign: 'left',
+        padding: '10px 16px', background: 'none', border: 'none',
+        fontFamily: 'var(--font-display)', fontSize: 11,
+        letterSpacing: '0.08em', color: danger ? '#e05' : 'var(--fg-base)',
+        cursor: 'pointer',
+      }}
+      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
+      onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+    >
+      {label}
+    </button>
+  );
   return (
     <div style={{ position: 'relative' }}>
-      <div
-        className="avatar"
-        onClick={() => setOpen((o) => !o)}
-        style={{ cursor: 'pointer' }}
-      >
+      <div className="avatar" onClick={() => setOpen((o) => !o)} style={{ cursor: 'pointer' }}>
         {user?.username?.slice(0, 2).toUpperCase() || '??'}
       </div>
       {open && (
         <>
-          <div
-            style={{ position: 'fixed', inset: 0, zIndex: 299 }}
-            onClick={() => setOpen(false)}
-          />
+          <div style={{ position: 'fixed', inset: 0, zIndex: 299 }} onClick={() => setOpen(false)} />
           <div style={{
             position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 300,
             background: 'var(--bg-elev)', border: '1px solid var(--stroke)',
@@ -49,20 +58,8 @@ function AvatarMenu({ user, onLogout }) {
             }}>
               {user?.username?.toUpperCase()}
             </div>
-            <button
-              onClick={() => { setOpen(false); onLogout(); }}
-              style={{
-                display: 'block', width: '100%', textAlign: 'left',
-                padding: '10px 16px', background: 'none', border: 'none',
-                fontFamily: 'var(--font-display)', fontSize: 11,
-                letterSpacing: '0.08em', color: 'var(--fg-base)',
-                cursor: 'pointer',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
-            >
-              SIGN OUT
-            </button>
+            {menuItem('SETTINGS', onSettings)}
+            {menuItem('SIGN OUT', onLogout)}
           </div>
         </>
       )}
@@ -70,7 +67,7 @@ function AvatarMenu({ user, onLogout }) {
   );
 }
 
-function DesktopDashboard({ unit, user, onLogout }) {
+function DesktopDashboard({ unit, user, goals, onLogout, onSettings }) {
   const [tab, setTab] = useState('overview');
   const [activeDay, setActiveDay] = useState(() => DAYS.find((d) => d.isToday).iso);
 
@@ -84,7 +81,7 @@ function DesktopDashboard({ unit, user, onLogout }) {
         <div className="topbar-right">
           <button className="icon-btn" title="Search">⌕</button>
           <button className="icon-btn" title="Notifications">◔</button>
-          <AvatarMenu user={user} onLogout={onLogout} />
+          <AvatarMenu user={user} onLogout={onLogout} onSettings={onSettings} />
         </div>
       </div>
 
@@ -127,7 +124,7 @@ function DesktopDashboard({ unit, user, onLogout }) {
 
       {tab === 'fuel' && (
         <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr' }}>
-          <div className="grid-col"><NutritionPanel date={activeDay} /></div>
+          <div className="grid-col"><NutritionPanel date={activeDay} goals={goals} /></div>
           <div className="grid-col">
             <WaterTile date={activeDay} />
             <StreakTile />
@@ -155,7 +152,7 @@ function DesktopDashboard({ unit, user, onLogout }) {
   );
 }
 
-function MobileDashboard({ unit, user, onLogout }) {
+function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
   const [tab, setTab] = useState('home');
   const [activeDay, setActiveDay] = useState(() => DAYS.find((d) => d.isToday).iso);
   const visibleDays = DAYS.slice(1, 6);
@@ -186,6 +183,7 @@ function MobileDashboard({ unit, user, onLogout }) {
     return { cal, p, c, f };
   }, [meals]);
 
+  const G = goals || GOALS;
   const today = DAYS.find((d) => d.isToday);
   const greetDate = today ? `${today.weekday} · ${today.month} ${today.day}` : 'TODAY';
 
@@ -197,7 +195,7 @@ function MobileDashboard({ unit, user, onLogout }) {
           <div className="m-greet">HEY, {user?.username?.toUpperCase() || ''}.</div>
         </div>
         <div style={{ position: 'relative' }}>
-          <AvatarMenu user={user} onLogout={onLogout} />
+          <AvatarMenu user={user} onLogout={onLogout} onSettings={onSettings} />
         </div>
       </div>
 
@@ -232,29 +230,29 @@ function MobileDashboard({ unit, user, onLogout }) {
               <div>
                 <div className="eyebrow">TODAY'S FUEL</div>
                 <div className="m-card-title">
-                  {Math.round(mealTotals.cal)} <span className="m-card-unit">/ {GOALS.calories} KCAL</span>
+                  {Math.round(mealTotals.cal)} <span className="m-card-unit">/ {G.calories} KCAL</span>
                 </div>
               </div>
               <div className="m-cal-ring">
-                <Ring value={mealTotals.cal} max={GOALS.calories} size={56} stroke={6}>
+                <Ring value={mealTotals.cal} max={G.calories} size={56} stroke={6}>
                   <div style={{ fontSize: 10, fontFamily: 'var(--font-display)' }}>
-                    {Math.round((mealTotals.cal / GOALS.calories) * 100)}%
+                    {Math.round((mealTotals.cal / G.calories) * 100)}%
                   </div>
                 </Ring>
               </div>
             </div>
             <div className="m-macros">
               <div className="m-macro">
-                <div className="m-macro-top"><span>P</span><strong>{Math.round(mealTotals.p)}</strong>/{GOALS.protein}</div>
-                <Bar value={mealTotals.p} max={GOALS.protein} color="var(--accent)" height={4} />
+                <div className="m-macro-top"><span>P</span><strong>{Math.round(mealTotals.p)}</strong>/{G.protein}</div>
+                <Bar value={mealTotals.p} max={G.protein} color="var(--accent)" height={4} />
               </div>
               <div className="m-macro">
-                <div className="m-macro-top"><span>C</span><strong>{Math.round(mealTotals.c)}</strong>/{GOALS.carbs}</div>
-                <Bar value={mealTotals.c} max={GOALS.carbs} color="#E8E4DC" height={4} />
+                <div className="m-macro-top"><span>C</span><strong>{Math.round(mealTotals.c)}</strong>/{G.carbs}</div>
+                <Bar value={mealTotals.c} max={G.carbs} color="#E8E4DC" height={4} />
               </div>
               <div className="m-macro">
-                <div className="m-macro-top"><span>F</span><strong>{Math.round(mealTotals.f)}</strong>/{GOALS.fat}</div>
-                <Bar value={mealTotals.f} max={GOALS.fat} color="#8A8A8A" height={4} />
+                <div className="m-macro-top"><span>F</span><strong>{Math.round(mealTotals.f)}</strong>/{G.fat}</div>
+                <Bar value={mealTotals.f} max={G.fat} color="#8A8A8A" height={4} />
               </div>
             </div>
           </div>
@@ -284,9 +282,9 @@ function MobileDashboard({ unit, user, onLogout }) {
           <div className="m-row">
             <div className="m-card m-card-half">
               <div className="eyebrow">WATER</div>
-              <div className="m-big-num">{water}<span className="m-big-unit">/{GOALS.water}</span></div>
+              <div className="m-big-num">{water}<span className="m-big-unit">/{G.water}</span></div>
               <div className="water-cups" style={{ gridTemplateColumns: 'repeat(8, 1fr)', gap: 3, marginTop: 10 }}>
-                {Array.from({ length: GOALS.water }).map((_, i) => (
+                {Array.from({ length: G.water }).map((_, i) => (
                   <div key={i} className={`cup ${i < water ? 'cup-filled' : ''}`} style={{ borderRadius: 3 }} />
                 ))}
               </div>
@@ -303,19 +301,19 @@ function MobileDashboard({ unit, user, onLogout }) {
 
       {tab === 'train' && (
         <div className="m-train-view" style={{ paddingTop: 8 }}>
-          <WorkoutPanel unit={unit} />
+          <WorkoutPanel unit={unit} date={activeDay} />
         </div>
       )}
 
       {tab === 'fuel' && (
         <div className="m-fuel-view" style={{ paddingTop: 8 }}>
-          <NutritionPanel />
+          <NutritionPanel date={activeDay} goals={goals} />
         </div>
       )}
 
       {tab === 'feel' && (
         <div className="m-feel-view" style={{ paddingTop: 8 }}>
-          <FeelPanel />
+          <FeelPanel date={activeDay} />
         </div>
       )}
 
@@ -357,6 +355,8 @@ export default function App() {
   const [unit, setUnit] = useState('kg');
   const [theme, setTheme] = useState('dark');
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const [goals, setGoals] = useState(null);
+  const [view, setView] = useState('dashboard');
 
   useEffect(() => {
     if (!getToken()) { setAuthChecked(true); return; }
@@ -366,6 +366,11 @@ export default function App() {
       .catch(() => { clearToken(); })
       .finally(() => { clearTimeout(timeout); setAuthChecked(true); });
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    getGoals().then(setGoals).catch(() => {});
+  }, [user]);
 
   useEffect(() => {
     document.body.classList.toggle('light', theme === 'light');
@@ -396,6 +401,23 @@ export default function App() {
   if (!user) return <AuthScreen onLogin={(u) => { setUser(u); setUnit(u.unit || 'kg'); setTheme(u.theme || 'dark'); }} />;
 
   const handleLogout = () => { clearToken(); setUser(null); };
+  const handleSettings = () => setView('settings');
+
+  if (view === 'settings') {
+    return (
+      <SettingsPanel
+        user={user}
+        unit={unit}
+        goals={goals}
+        onBack={() => setView('dashboard')}
+        onSaved={(updatedUser, updatedGoals) => {
+          setUser(updatedUser);
+          setGoals(updatedGoals);
+          if (updatedUser.unit) setUnit(updatedUser.unit);
+        }}
+      />
+    );
+  }
 
   return (
     <>
@@ -434,8 +456,8 @@ export default function App() {
       )}
 
       {isMobile
-        ? <MobileDashboard unit={unit} user={user} onLogout={handleLogout} />
-        : <DesktopDashboard unit={unit} user={user} onLogout={handleLogout} />
+        ? <MobileDashboard unit={unit} user={user} goals={goals} onLogout={handleLogout} onSettings={handleSettings} />
+        : <DesktopDashboard unit={unit} user={user} goals={goals} onLogout={handleLogout} onSettings={handleSettings} />
       }
     </>
   );
