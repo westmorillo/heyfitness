@@ -163,6 +163,7 @@ function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
   const TODAY_ISO = DAYS.find((d) => d.isToday)?.iso || new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
+    if (tab !== 'home') return;
     getLog(TODAY_ISO)
       .then((log) => {
         if (log.meals?.length) setMeals(log.meals);
@@ -170,7 +171,7 @@ function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
         if (log.water) setWater(log.water);
       })
       .catch(() => {});
-  }, [TODAY_ISO]);
+  }, [tab, TODAY_ISO]);
 
   const mealTotals = useMemo(() => {
     let cal = 0, p = 0, c = 0, f = 0;

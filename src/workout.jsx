@@ -407,8 +407,14 @@ export function WorkoutPanel({ unit = 'kg', date }) {
             ))}
           </div>
           <button
+            className="btn-primary btn-wide"
+            onClick={() => setFinished(false)}
+          >
+            EDIT WORKOUT
+          </button>
+          <button
             className="add-exercise-btn"
-            style={{ marginTop: 16 }}
+            style={{ marginTop: 10 }}
             onClick={() => { setWorkout(null); setFinished(false); }}
           >
             + START NEW WORKOUT
