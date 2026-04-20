@@ -160,18 +160,19 @@ function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
   const [workout, setWorkout] = useState(null);
   const [water, setWater] = useState(0);
 
-  const TODAY_ISO = DAYS.find((d) => d.isToday)?.iso || new Date().toISOString().slice(0, 10);
-
   useEffect(() => {
     if (tab !== 'home') return;
-    getLog(TODAY_ISO)
+    setMeals([]);
+    setWorkout(null);
+    setWater(0);
+    getLog(activeDay)
       .then((log) => {
         if (log.meals?.length) setMeals(log.meals);
         if (log.workout) setWorkout(log.workout);
         if (log.water) setWater(log.water);
       })
       .catch(() => {});
-  }, [tab, TODAY_ISO]);
+  }, [tab, activeDay]);
 
   const mealTotals = useMemo(() => {
     let cal = 0, p = 0, c = 0, f = 0;
