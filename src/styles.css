@@ -1036,3 +1036,170 @@ input, textarea { font-family: inherit; }
 }
 .nff-cancel:hover { border-color: var(--stroke-strong); color: var(--fg-base); }
 .btn-loading { opacity: 0.6; cursor: wait; }
+
+/* ─── ROUTINE PICKER ─────────────────────────────────── */
+.routine-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.routine-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+  text-align: left;
+}
+.routine-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.routine-card-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+.routine-card-sub {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--fg-muted);
+  margin: 4px 0 10px;
+}
+.routine-card-exes {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.routine-card-ex {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg-dim);
+}
+.routine-card-more { color: var(--fg-muted); }
+.routine-card-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg-muted);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--stroke-subtle);
+}
+
+/* ─── ADD EXERCISE SHEET ─────────────────────────────── */
+.add-ex-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: flex-end;
+}
+.add-ex-sheet {
+  background: var(--bg-elev);
+  border-radius: 16px 16px 0 0;
+  width: 100%;
+  max-height: 72vh;
+  display: flex;
+  flex-direction: column;
+}
+.add-ex-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid var(--stroke);
+  flex-shrink: 0;
+}
+.add-ex-search {
+  background: var(--bg-elev-2);
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--fg-base);
+  margin: 12px 20px 4px;
+  outline: none;
+  flex-shrink: 0;
+}
+.add-ex-search::placeholder { color: var(--fg-dim); }
+.add-ex-search:focus { border-color: var(--accent); }
+.add-ex-list {
+  overflow-y: auto;
+  padding: 4px 20px 24px;
+  flex: 1;
+}
+.add-ex-muscle {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--fg-muted);
+  padding: 14px 0 6px;
+}
+.add-ex-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 11px 0;
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--fg-base);
+  cursor: pointer;
+  border-bottom: 1px solid var(--stroke-subtle);
+  transition: color .12s;
+}
+.add-ex-item:hover { color: var(--accent); }
+
+/* ─── ADD EXERCISE BUTTON ────────────────────────────── */
+.add-exercise-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 13px;
+  background: none;
+  border: 1px dashed var(--stroke);
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.add-exercise-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ─── EXERCISE CARD DONE STATE ───────────────────────── */
+.exercise-card-done .exercise-name { color: var(--fg-muted); }
+.exercise-card-done .exercise-head { opacity: 0.7; }
+
+/* ─── WORKOUT SUMMARY ────────────────────────────────── */
+.workout-summary { padding: 4px 0 8px; }
+.workout-summary-stats {
+  display: flex;
+  gap: 24px;
+  padding: 16px;
+  background: var(--bg-elev);
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+.workout-summary-exes { display: flex; flex-direction: column; }
+.workout-summary-ex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--stroke-subtle);
+}
+
+/* ─── DESKTOP SHEET OVERRIDE ─────────────────────────── */
+@media (min-width: 768px) {
+  .add-ex-overlay { align-items: center; justify-content: center; padding: 24px; }
+  .add-ex-sheet { border-radius: 16px; max-width: 480px; max-height: 60vh; }
+}

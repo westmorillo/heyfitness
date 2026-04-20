@@ -157,3 +157,78 @@ export const EMPTY_MEALS = [
 // Legacy localStorage helpers kept for MobileDashboard static data
 export function loadMeals() { return DEFAULT_MEALS; }
 export function loadWorkout() { return DEFAULT_WORKOUT; }
+
+export const DEFAULT_ROUTINES = [
+  {
+    id: 'r1',
+    name: 'PUSH DAY',
+    subtitle: 'CHEST, SHOULDERS & TRICEPS',
+    exercises: [
+      { name: 'Barbell Bench Press', sets: [{ weight: 80, reps: 8 }, { weight: 80, reps: 8 }, { weight: 80, reps: 6 }, { weight: 80, reps: 6 }] },
+      { name: 'Overhead Press', sets: [{ weight: 50, reps: 10 }, { weight: 50, reps: 8 }, { weight: 50, reps: 8 }] },
+      { name: 'Incline Dumbbell Press', sets: [{ weight: 30, reps: 12 }, { weight: 30, reps: 10 }, { weight: 30, reps: 10 }] },
+      { name: 'Lateral Raise', sets: [{ weight: 10, reps: 15 }, { weight: 10, reps: 15 }, { weight: 10, reps: 15 }] },
+      { name: 'Tricep Pushdown', sets: [{ weight: 30, reps: 12 }, { weight: 30, reps: 12 }, { weight: 35, reps: 10 }] },
+    ],
+  },
+  {
+    id: 'r2',
+    name: 'PULL DAY',
+    subtitle: 'BACK & BICEPS',
+    exercises: [
+      { name: 'Deadlift', sets: [{ weight: 100, reps: 5 }, { weight: 100, reps: 5 }, { weight: 100, reps: 5 }] },
+      { name: 'Pull-Up', sets: [{ weight: 0, reps: 8 }, { weight: 0, reps: 6 }, { weight: 0, reps: 6 }] },
+      { name: 'Barbell Row', sets: [{ weight: 70, reps: 8 }, { weight: 70, reps: 8 }, { weight: 70, reps: 8 }] },
+      { name: 'Lat Pulldown', sets: [{ weight: 60, reps: 12 }, { weight: 60, reps: 10 }, { weight: 60, reps: 10 }] },
+      { name: 'Barbell Curl', sets: [{ weight: 30, reps: 12 }, { weight: 30, reps: 10 }, { weight: 30, reps: 10 }] },
+    ],
+  },
+  {
+    id: 'r3',
+    name: 'LEG DAY',
+    subtitle: 'QUADS, HAMSTRINGS & GLUTES',
+    exercises: [
+      { name: 'Barbell Squat', sets: [{ weight: 100, reps: 8 }, { weight: 100, reps: 6 }, { weight: 100, reps: 6 }, { weight: 100, reps: 5 }] },
+      { name: 'Romanian Deadlift', sets: [{ weight: 80, reps: 10 }, { weight: 80, reps: 10 }, { weight: 80, reps: 8 }] },
+      { name: 'Leg Press', sets: [{ weight: 150, reps: 12 }, { weight: 150, reps: 10 }, { weight: 150, reps: 10 }] },
+      { name: 'Leg Curl', sets: [{ weight: 50, reps: 12 }, { weight: 50, reps: 12 }, { weight: 50, reps: 10 }] },
+      { name: 'Calf Raise', sets: [{ weight: 60, reps: 15 }, { weight: 60, reps: 15 }, { weight: 60, reps: 15 }] },
+    ],
+  },
+  {
+    id: 'r4',
+    name: 'UPPER BODY',
+    subtitle: 'CHEST, BACK & ARMS',
+    exercises: [
+      { name: 'Barbell Bench Press', sets: [{ weight: 80, reps: 8 }, { weight: 80, reps: 8 }, { weight: 80, reps: 6 }] },
+      { name: 'Barbell Row', sets: [{ weight: 70, reps: 8 }, { weight: 70, reps: 8 }, { weight: 70, reps: 8 }] },
+      { name: 'Overhead Press', sets: [{ weight: 50, reps: 10 }, { weight: 50, reps: 8 }, { weight: 50, reps: 8 }] },
+      { name: 'Pull-Up', sets: [{ weight: 0, reps: 8 }, { weight: 0, reps: 6 }, { weight: 0, reps: 6 }] },
+      { name: 'Dumbbell Curl', sets: [{ weight: 14, reps: 12 }, { weight: 14, reps: 12 }, { weight: 14, reps: 10 }] },
+      { name: 'Tricep Pushdown', sets: [{ weight: 30, reps: 12 }, { weight: 30, reps: 12 }, { weight: 30, reps: 10 }] },
+    ],
+  },
+  {
+    id: 'r5',
+    name: 'FULL BODY',
+    subtitle: 'TOTAL BODY STRENGTH',
+    exercises: [
+      { name: 'Barbell Squat', sets: [{ weight: 80, reps: 8 }, { weight: 80, reps: 8 }, { weight: 80, reps: 6 }] },
+      { name: 'Barbell Bench Press', sets: [{ weight: 70, reps: 8 }, { weight: 70, reps: 8 }, { weight: 70, reps: 8 }] },
+      { name: 'Barbell Row', sets: [{ weight: 60, reps: 10 }, { weight: 60, reps: 10 }, { weight: 60, reps: 8 }] },
+      { name: 'Overhead Press', sets: [{ weight: 40, reps: 10 }, { weight: 40, reps: 10 }, { weight: 40, reps: 8 }] },
+      { name: 'Romanian Deadlift', sets: [{ weight: 70, reps: 10 }, { weight: 70, reps: 10 }, { weight: 70, reps: 8 }] },
+    ],
+  },
+];
+
+export function loadRoutines() {
+  try {
+    const raw = localStorage.getItem('hf_routines');
+    return raw ? JSON.parse(raw) : DEFAULT_ROUTINES;
+  } catch { return DEFAULT_ROUTINES; }
+}
+
+export function saveRoutines(routines) {
+  localStorage.setItem('hf_routines', JSON.stringify(routines));
+}
