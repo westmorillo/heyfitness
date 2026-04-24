@@ -95,6 +95,7 @@ export const translations = {
     'muscle.Shoulders': 'SHOULDERS',
     'muscle.Arms':      'ARMS',
     'muscle.Core':      'CORE',
+    'muscle.Full Body': 'FULL BODY',
 
     // Nutrition panel
     'nutrition.eyebrow':              'NUTRITION',
@@ -330,6 +331,7 @@ export const translations = {
     'muscle.Shoulders': 'HOMBROS',
     'muscle.Arms':      'BRAZOS',
     'muscle.Core':      'CORE',
+    'muscle.Full Body': 'FULL BODY',
 
     // Nutrition panel
     'nutrition.eyebrow':              'NUTRICIÓN',
