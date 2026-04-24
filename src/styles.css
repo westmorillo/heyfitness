@@ -1255,3 +1255,14 @@ input, textarea { font-family: inherit; }
   .add-ex-overlay { align-items: center; justify-content: center; padding: 24px; }
   .add-ex-sheet { border-radius: 16px; max-width: 480px; max-height: 60vh; }
 }
+
+/* ─── MOBILE WORKOUT COMPACT ─────────────────────────── */
+@media (max-width: 480px) {
+  .workout-panel { padding: 16px 12px; }
+  .sets-table { padding: 10px 10px 12px; }
+  .sets-header,
+  .set-row { grid-template-columns: 20px 1fr 1fr 30px; gap: 4px; }
+  .stepper { gap: 3px; }
+  .stepper-btn { width: 26px; height: 26px; font-size: 14px; }
+  .stepper-val { width: 32px; font-size: 14px; }
+}
