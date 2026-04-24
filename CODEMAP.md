@@ -49,6 +49,181 @@
 
 ---
 
+## Features — qué hace cada pantalla y cómo funciona
+
+### 🔐 Autenticación (`auth.jsx`)
+- El usuario crea una cuenta o inicia sesión con usuario + contraseña.
+- Al autenticarse, el servidor devuelve un JWT que se guarda en `localStorage` (`hf_token`).
+- Al recargar, `App.jsx` llama a `getMe()` con ese token para restaurar la sesión automáticamente.
+- Si el token es inválido o expira, se limpia y se muestra la pantalla de login.
+
+---
+
+### 🏠 HOME / RESUMEN (`overview.jsx` + `MobileDashboard` en `App.jsx`)
+
+**Desktop:** tab "OVERVIEW" — muestra dos paneles lado a lado.  
+**Mobile:** tab "INICIO" — muestra cards apiladas con acciones rápidas.
+
+**Qué muestra:**
+- **Resumen de sesión:** nombre del entrenamiento del día, duración, series completadas, volumen total.
+- **Resumen nutricional:** calorías consumidas vs meta (anillo), barras de macros (proteína, carbos, grasa), listado de comidas del día.
+- **Acciones rápidas (mobile):** botones "INICIAR ENTRENO" y "REGISTRAR COMIDA" que llevan directo a los paneles correspondientes.
+- **Agua y sueño (mobile):** mini-cards con vasos de agua del día y slot de sueño.
+
+**Cómo funciona:**
+- Lee el log del día seleccionado via `getLog(date)`.
+- Si no hay datos, muestra estados vacíos ("SIN SESIÓN HOY", "Sin registrar").
+- Se actualiza automáticamente cada vez que el usuario cambia la fecha en el `DayStrip`.
+
+---
+
+### 💪 ENTRENO (`workout.jsx`)
+
+**Cómo se usa:**
+1. Al abrir el panel sin entreno activo, aparece el **RoutinePicker**: 5 rutinas pre-definidas (Push, Pull, Piernas, Tren Superior, Full Body) y la opción "ENTRENO EN BLANCO".
+2. Al seleccionar una rutina, se crea el objeto de workout y arranca el **timer de sesión**.
+3. Por cada ejercicio se muestra una tabla de series con peso y reps editables via `Stepper`.
+4. Al completar una serie (✓), se activa el **timer de descanso** (90 seg con +15s y saltar).
+5. Se puede agregar ejercicios extra con **"+ AGREGAR EJERCICIO"** — abre un modal buscable con 36 ejercicios en 6 grupos musculares.
+6. Al pulsar **"FINALIZAR ENTRENO"** se guarda duración, series y volumen total.
+7. La pantalla de resumen final muestra stats y permite editar o iniciar uno nuevo.
+
+**Auto-guardado:** cada cambio (peso, reps, completar serie) dispara un `putLog` con 600ms de debounce.
+
+**Rutinas disponibles:**
+| Rutina | Grupos musculares |
+|--------|-------------------|
+| Push Day | Pecho, Hombros, Tríceps |
+| Pull Day | Espalda, Bíceps |
+| Leg Day | Cuádriceps, Isquiotibiales, Glúteos |
+| Upper Body | Pecho, Espalda, Brazos |
+| Full Body | Completo |
+
+**Grupos musculares en el buscador:** Pecho, Piernas, Espalda, Hombros, Brazos, Core (36 ejercicios en total).
+
+---
+
+### 🥗 NUTRICIÓN (`nutrition.jsx`)
+
+**Cómo se usa:**
+1. El panel muestra 4 comidas del día: Desayuno, Almuerzo, Merienda, Cena.
+2. Cada comida tiene un botón **"+ AGREGAR COMIDA"** que abre el buscador.
+3. En el buscador se puede buscar por nombre o marca en la **base de datos de 12 alimentos** incluidos.
+4. Tab **RECIENTES:** muestra los alimentos de la DB + los custom del usuario.
+5. Tab **PERSONALIZADOS:** solo los alimentos creados por el usuario.
+6. **"+ NUEVO ALIMENTO":** formulario para crear un alimento custom con nombre, marca, porción, kcal, proteína, carbos, grasa — se guarda en el servidor via `postFood()`.
+7. Dentro de cada comida, cada alimento tiene un **slider de porción** (0.1x – 3x) para ajustar cantidades.
+8. Botón **ELIMINAR** para sacar un alimento de la comida.
+
+**Qué calcula automáticamente:**
+- Calorías totales del día (anillo con "KCAL REST.")
+- Barras de progreso de proteína, carbos y grasa vs metas del usuario
+- Totales por comida (kcal + proteína)
+
+**Auto-guardado:** cada cambio dispara `putLog(date, { meals })` inmediatamente.
+
+---
+
+### 🧠 ESTADO / FEEL (`feel.jsx`)
+
+**Cómo se usa:**
+1. **Estado general:** 5 botones de mood con emoji — Agotado, Bajo, Normal, Bien, En llamas.
+2. **Síntomas digestivos:** chips togglables — Hinchazón, Gases, Reflujo, Calambres, Náuseas, Ninguno.
+3. **Otros síntomas:** chips togglables — Dolor de cabeza, Fatiga, Niebla mental, Sarpullido, Dolor articular, Ninguno.
+4. **Nivel de energía:** slider 1–10.
+5. **Calidad del sueño:** slider 1–10.
+6. **Notas libres:** textarea opcional.
+7. **Análisis IA (mock):** sección estática que muestra patrones de los últimos 14 días (pendiente de implementación real).
+
+**Comportamiento de síntomas:**
+- Seleccionar "NINGUNO" limpia todos los demás.
+- Seleccionar cualquier síntoma cuando "NINGUNO" está activo lo desactiva automáticamente.
+- Un síntoma ya activo se desactiva al pulsarlo de nuevo (toggle).
+
+**Auto-guardado:** cada interacción dispara `putLog(date, { feel })` inmediatamente.
+
+---
+
+### 😴 SUEÑO (`SleepTile` en `tiles.jsx`)
+
+> ⚠️ Actualmente muestra **datos estáticos mock** (`SLEEP_DATA` en `data.js`). Pendiente conexión con API real.
+
+**Qué muestra:**
+- Horas de sueño de la noche anterior (ej. 7.4h)
+- Hora de acostarse y despertar
+- Promedio de los últimos 7 días
+- Barra visual segmentada por fases: Profundo, REM, Ligero, Despierto
+- Leyenda con horas por fase
+
+---
+
+### 💧 AGUA (`WaterTile` en `tiles.jsx`)
+
+**Cómo se usa:**
+- Grid de vasos (por defecto 8) — cada vaso es un botón.
+- Clic en un vaso lo marca como lleno. Clic en el último vaso lleno lo desmarca.
+- Se guarda el conteo via `putLog(date, { water: n })`.
+- Se carga el conteo del día seleccionado via `getLog(date)`.
+
+---
+
+### 📊 STATS (`WeekTile` + `StreakTile` en `tiles.jsx`)
+
+> ⚠️ Actualmente muestran **datos estáticos mock**. Pendiente conexión con API real.
+
+**WeekTile — Movimiento últimos 7 días:**
+- Gráfico de barras con calorías quemadas por día.
+- Puntos indicadores de días con entrenamiento.
+- Footer con total de kcal y número de entrenos.
+
+**StreakTile — Racha de consistencia:**
+- Número de días consecutivos activos.
+- Récord personal.
+- Grid de 28 días (4 semanas) con días activos marcados.
+
+---
+
+### ⚙️ AJUSTES (`settings.jsx`)
+
+**Cómo se usa:**
+- Acceso desde el menú del avatar (desktop y mobile).
+
+**Métricas corporales:**
+- Selección de sexo (Hombre / Mujer).
+- Peso actual y peso objetivo (se muestra en la unidad activa: kg o lb).
+- Altura (cm) y edad.
+- Nivel de actividad: Sedentario / Ligero / Moderado / Activo / Muy activo.
+- Objetivo: Perder grasa / Mantener / Ganar músculo.
+
+**Metas nutricionales:**
+- Se calculan automáticamente con la fórmula **Mifflin-St Jeor** cuando hay métricas completas.
+- El badge "AUTO-CALCULADO" aparece cuando el cálculo está activo.
+- Se pueden editar manualmente para sobreescribir el cálculo.
+- Campos: Calorías, Agua, Proteína, Carbos, Grasa.
+
+**Cómo guarda:** `patchMe(profile)` + `putGoals(goals)` en paralelo con `Promise.all`. El callback `onSaved` actualiza el estado global en `App.jsx`.
+
+---
+
+### 🗓️ DayStrip (`tiles.jsx`)
+
+Barra de selección de fecha que aparece en la parte superior de ambos layouts (desktop y mobile).
+- Muestra 7 días centrados en hoy (3 anteriores + hoy + 3 siguientes).
+- El día activo se resalta; hoy tiene un punto indicador.
+- Al cambiar el día, **todos los paneles re-fetchean** sus datos automáticamente.
+
+---
+
+### 🌐 Idioma (`LangContext.jsx` + `i18n.js`)
+
+- **Idioma por defecto:** Español.
+- **Toggle:** botón en el top-right del desktop que muestra el código del idioma alternativo (ES / EN).
+- **Persistencia:** se guarda en `localStorage` bajo `hf_lang`. Sobrevive recargas de página.
+- **Cobertura:** todos los textos visibles de la UI (labels, botones, placeholders, mensajes de error, nombres de pestañas, etc.).
+- Los datos almacenados en el servidor siempre son en inglés (neutral); solo cambia la capa visual.
+
+---
+
 ## Panels / screens
 
 | Tab | Component | File | Description |
@@ -323,7 +498,8 @@ function MyComponent() {
 
 ### Language toggle
 
-- **Desktop:** button in the top-right corner (next to theme/unit toggles). Shows the *other* language code (e.g., `ES` when current is English, `EN` when current is Spanish).
+- **Default language:** Spanish (`es`).
+- **Desktop:** button in the top-right corner (next to theme/unit toggles). Shows the *other* language code (`EN` when current is Spanish, `ES` when current is English).
 - **Mobile:** no dedicated button yet — can be added to `AvatarMenu` if needed.
 - Persists in `localStorage` under `hf_lang`.
 

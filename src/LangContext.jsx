@@ -24,7 +24,7 @@ const SUPPORTED = ['en', 'es'];
 export function LangProvider({ children }) {
   const [lang, setLang] = useState(() => {
     const saved = localStorage.getItem(LS_KEY);
-    return SUPPORTED.includes(saved) ? saved : 'en';
+    return SUPPORTED.includes(saved) ? saved : 'es';
   });
 
   const toggleLang = () => {
