@@ -3,6 +3,7 @@ import { Stepper } from './primitives.jsx';
 import { getLog, putLog } from './api.js';
 import { loadRoutines } from './data.js';
 import { useT } from './LangContext.jsx';
+import { getExerciseAsset } from './exerciseAssets.js';
 
 const EXERCISE_DB = [
   { id: 'x1',  name: 'Barbell Bench Press',     muscle: 'Chest' },
@@ -34,13 +35,14 @@ const EXERCISE_DB = [
   { id: 'x27', name: 'Barbell Curl',            muscle: 'Arms' },
   { id: 'x28', name: 'Dumbbell Curl',           muscle: 'Arms' },
   { id: 'x29', name: 'Hammer Curl',             muscle: 'Arms' },
-  { id: 'x30', name: 'Tricep Pushdown',         muscle: 'Arms' },
-  { id: 'x31', name: 'Skull Crusher',           muscle: 'Arms' },
-  { id: 'x32', name: 'Overhead Tricep Ext.',    muscle: 'Arms' },
-  { id: 'x33', name: 'Plank',                   muscle: 'Core' },
-  { id: 'x34', name: 'Ab Crunch',               muscle: 'Core' },
-  { id: 'x35', name: 'Russian Twist',           muscle: 'Core' },
-  { id: 'x36', name: 'Hanging Leg Raise',       muscle: 'Core' },
+  { id: 'x30', name: 'Concentration Curl',      muscle: 'Arms' },
+  { id: 'x31', name: 'Tricep Pushdown',         muscle: 'Arms' },
+  { id: 'x32', name: 'Skull Crusher',           muscle: 'Arms' },
+  { id: 'x33', name: 'Overhead Tricep Ext.',    muscle: 'Arms' },
+  { id: 'x34', name: 'Plank',                   muscle: 'Core' },
+  { id: 'x35', name: 'Ab Crunch',               muscle: 'Core' },
+  { id: 'x36', name: 'Russian Twist',           muscle: 'Core' },
+  { id: 'x37', name: 'Hanging Leg Raise',       muscle: 'Core' },
 ];
 
 function RestTimer({ running, seconds, onComplete, onCancel }) {
@@ -113,7 +115,15 @@ function AddExerciseSheet({ onAdd, onClose }) {
               <div className="add-ex-muscle">{t(`muscle.${muscle}`)}</div>
               {exs.map((ex) => (
                 <button key={ex.id} className="add-ex-item" onClick={() => onAdd(ex)}>
-                  {ex.name}
+                  {getExerciseAsset(ex.name)?.guide && (
+                    <img
+                      className="add-ex-thumb"
+                      src={getExerciseAsset(ex.name).guide}
+                      alt=""
+                      loading="lazy"
+                    />
+                  )}
+                  <span>{ex.name}</span>
                 </button>
               ))}
             </div>
@@ -127,6 +137,7 @@ function AddExerciseSheet({ onAdd, onClose }) {
 function ExerciseCard({ ex, onToggleSet, onUpdateSet, onAddSet, onStartRest, unit }) {
   const [expanded, setExpanded] = useState(true);
   const t = useT();
+  const asset = getExerciseAsset(ex.name);
   const completed = ex.sets.filter((s) => s.done).length;
   const volume = ex.sets.reduce((acc, s) => acc + (s.done ? s.weight * s.reps : 0), 0);
   const allDone = completed === ex.sets.length && ex.sets.length > 0;
@@ -147,6 +158,14 @@ function ExerciseCard({ ex, onToggleSet, onUpdateSet, onAddSet, onStartRest, uni
 
       {expanded && (
         <div className="sets-table">
+          {asset?.guide && (
+            <img
+              className="exercise-guide"
+              src={asset.guide}
+              alt={`${ex.name} guide`}
+              loading="lazy"
+            />
+          )}
           <div className="sets-header">
             <span>{t('workout.col.set')}</span>
             <span>{t('workout.col.weight', { unit })}</span>
