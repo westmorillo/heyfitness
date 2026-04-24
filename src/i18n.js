@@ -126,9 +126,11 @@ export const translations = {
     'nutrition.form.namePh':          'e.g. Chicken breast',
     'nutrition.form.brandPh':         'e.g. Generic',
     'nutrition.form.servingPh':       '100g',
+    'nutrition.form.titleEdit':        'EDIT FOOD',
     'nutrition.form.cancel':          'CANCEL',
     'nutrition.form.saving':          'SAVING...',
     'nutrition.form.save':            'SAVE FOOD',
+    'nutrition.form.saveEdit':        'SAVE CHANGES',
 
     // Meal names (data values from API — translated at display layer only)
     'meal.BREAKFAST': 'BREAKFAST',
@@ -359,9 +361,11 @@ export const translations = {
     'nutrition.form.namePh':          'ej. Pechuga de pollo',
     'nutrition.form.brandPh':         'ej. Genérico',
     'nutrition.form.servingPh':       '100g',
+    'nutrition.form.titleEdit':        'EDITAR ALIMENTO',
     'nutrition.form.cancel':          'CANCELAR',
     'nutrition.form.saving':          'GUARDANDO...',
     'nutrition.form.save':            'GUARDAR',
+    'nutrition.form.saveEdit':        'GUARDAR CAMBIOS',
 
     // Meal names
     'meal.BREAKFAST': 'DESAYUNO',

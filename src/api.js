@@ -42,4 +42,6 @@ export const getFoods = () => apiFetch('/foods');
 
 export const postFood = (food) => apiFetch('/foods', { method: 'POST', body: food });
 
+export const patchFood = (id, food) => apiFetch(`/foods/${id}`, { method: 'PATCH', body: food });
+
 export const deleteFood = (id) => apiFetch(`/foods/${id}`, { method: 'DELETE' });

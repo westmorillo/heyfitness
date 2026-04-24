@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Ring, Bar, Slider } from './primitives.jsx';
 import { EMPTY_MEALS, FOOD_DB, GOALS } from './data.js';
-import { getLog, putLog, getFoods, postFood, deleteFood } from './api.js';
+import { getLog, putLog, getFoods, postFood, patchFood, deleteFood } from './api.js';
 import { useT } from './LangContext.jsx';
 
 
@@ -101,13 +101,28 @@ function FoodSearch({ open, onClose, onAdd }) {
   const [customFoods, setCustomFoods] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [editingId, setEditingId] = useState(null); // null = creating, string = editing food id
   const [saving, setSaving] = useState(false);
   const t = useT();
 
   useEffect(() => {
-    if (!open) { setQ(''); setShowForm(false); setForm(EMPTY_FORM); return; }
+    if (!open) { setQ(''); setShowForm(false); setForm(EMPTY_FORM); setEditingId(null); return; }
     getFoods().then(setCustomFoods).catch(() => {});
   }, [open]);
+
+  const handleEdit = (food) => {
+    setEditingId(food.id);
+    setForm({
+      name:    food.name,
+      brand:   food.brand   || '',
+      serving: food.serving || '1 serving',
+      cal:     String(food.cal),
+      p:       String(food.p || 0),
+      c:       String(food.c || 0),
+      f:       String(food.f || 0),
+    });
+    setShowForm(true);
+  };
 
   const allFoods = useMemo(() => {
     const custom = customFoods.map((f) => ({ ...f, isCustom: true }));
@@ -131,18 +146,25 @@ function FoodSearch({ open, onClose, onAdd }) {
     if (!form.name || !form.cal) return;
     setSaving(true);
     try {
-      const saved = await postFood({
-        name: form.name,
-        brand: form.brand,
+      const payload = {
+        name:    form.name,
+        brand:   form.brand,
         serving: form.serving,
         cal: +form.cal,
-        p: +(form.p || 0),
-        c: +(form.c || 0),
-        f: +(form.f || 0),
-      });
-      setCustomFoods((prev) => [saved, ...prev]);
+        p:  +(form.p || 0),
+        c:  +(form.c || 0),
+        f:  +(form.f || 0),
+      };
+      if (editingId) {
+        const updated = await patchFood(editingId, payload);
+        setCustomFoods((prev) => prev.map((f) => f.id === editingId ? updated : f));
+      } else {
+        const saved = await postFood(payload);
+        setCustomFoods((prev) => [saved, ...prev]);
+      }
       setShowForm(false);
       setForm(EMPTY_FORM);
+      setEditingId(null);
       setActiveTab('CUSTOM');
     } catch {}
     setSaving(false);
@@ -208,7 +230,10 @@ function FoodSearch({ open, onClose, onAdd }) {
                     </div>
                   </button>
                   {f.isCustom && (
-                    <button className="food-delete-btn" onClick={() => handleDelete(f.id)} title="Delete">×</button>
+                    <>
+                      <button className="food-edit-btn" onClick={() => handleEdit(f)} title="Edit">✎</button>
+                      <button className="food-delete-btn" onClick={() => handleDelete(f.id)} title="Delete">×</button>
+                    </>
                   )}
                 </div>
               ))}
@@ -219,7 +244,7 @@ function FoodSearch({ open, onClose, onAdd }) {
           </>
         ) : (
           <div className="new-food-form">
-            <div className="new-food-form-title">{t('nutrition.form.title')}</div>
+            <div className="new-food-form-title">{editingId ? t('nutrition.form.titleEdit') : t('nutrition.form.title')}</div>
             <div className="nff-row">
               <div className="nff-field nff-wide">
                 <label className="nff-label">{t('nutrition.form.name')}</label>
@@ -255,7 +280,7 @@ function FoodSearch({ open, onClose, onAdd }) {
               </div>
             </div>
             <div className="nff-actions">
-              <button className="nff-cancel" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }}>
+              <button className="nff-cancel" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); setEditingId(null); }}>
                 {t('nutrition.form.cancel')}
               </button>
               <button
@@ -263,7 +288,7 @@ function FoodSearch({ open, onClose, onAdd }) {
                 onClick={handleSaveFood}
                 disabled={saving || !form.name || !form.cal}
               >
-                {saving ? t('nutrition.form.saving') : t('nutrition.form.save')}
+                {saving ? t('nutrition.form.saving') : editingId ? t('nutrition.form.saveEdit') : t('nutrition.form.save')}
               </button>
             </div>
           </div>
