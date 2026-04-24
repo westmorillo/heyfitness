@@ -1,11 +1,36 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-export function Stepper({ value, onChange, step = 1, min = 0, suffix = '' }) {
+export function Stepper({ value, onChange, step = 1, min = 0 }) {
+  const [draft, setDraft] = useState(null);
+
+  const commit = (raw) => {
+    const n = parseFloat(raw);
+    if (!isNaN(n)) onChange(Math.max(min, n));
+    setDraft(null);
+  };
+
   return (
     <div className="stepper">
-      <button className="stepper-btn" onClick={() => onChange(Math.max(min, value - step))} aria-label="decrease">–</button>
-      <span className="stepper-val">{value}{suffix}</span>
-      <button className="stepper-btn" onClick={() => onChange(value + step)} aria-label="increase">+</button>
+      <button
+        className="stepper-btn"
+        onClick={() => onChange(Math.max(min, value - step))}
+        aria-label="decrease"
+      >–</button>
+      <input
+        className="stepper-val"
+        type="number"
+        inputMode="decimal"
+        value={draft !== null ? draft : value}
+        onChange={(e) => setDraft(e.target.value)}
+        onFocus={(e) => { setDraft(String(value)); e.target.select(); }}
+        onBlur={(e) => commit(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') { commit(e.target.value); e.target.blur(); } }}
+      />
+      <button
+        className="stepper-btn"
+        onClick={() => onChange(value + step)}
+        aria-label="increase"
+      >+</button>
     </div>
   );
 }
