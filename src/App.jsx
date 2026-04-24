@@ -9,18 +9,13 @@ import { SettingsPanel } from './settings.jsx';
 import { DAYS, GOALS } from './data.js';
 import { getToken, clearToken, getMe, patchMe, getLog, getGoals } from './api.js';
 import { AuthScreen } from './auth.jsx';
+import { LangProvider, useT, useLang } from './LangContext.jsx';
 import './styles.css';
-
-const TABS = [
-  { id: 'overview', label: 'OVERVIEW' },
-  { id: 'train', label: 'TRAIN' },
-  { id: 'fuel', label: 'FUEL' },
-  { id: 'recover', label: 'RECOVER' },
-  { id: 'feel', label: 'FEEL' },
-];
 
 function AvatarMenu({ user, onLogout, onSettings }) {
   const [open, setOpen] = useState(false);
+  const t = useT();
+
   const menuItem = (label, action, danger = false) => (
     <button
       onClick={() => { setOpen(false); action(); }}
@@ -37,6 +32,7 @@ function AvatarMenu({ user, onLogout, onSettings }) {
       {label}
     </button>
   );
+
   return (
     <div style={{ position: 'relative' }}>
       <div className="avatar" onClick={() => setOpen((o) => !o)} style={{ cursor: 'pointer' }}>
@@ -58,8 +54,8 @@ function AvatarMenu({ user, onLogout, onSettings }) {
             }}>
               {user?.username?.toUpperCase()}
             </div>
-            {menuItem('SETTINGS', onSettings)}
-            {menuItem('SIGN OUT', onLogout)}
+            {menuItem(t('app.menu.settings'), onSettings)}
+            {menuItem(t('app.menu.signout'), onLogout, true)}
           </div>
         </>
       )}
@@ -70,6 +66,15 @@ function AvatarMenu({ user, onLogout, onSettings }) {
 function DesktopDashboard({ unit, user, goals, onLogout, onSettings }) {
   const [tab, setTab] = useState('overview');
   const [activeDay, setActiveDay] = useState(() => DAYS.find((d) => d.isToday).iso);
+  const t = useT();
+
+  const TABS = [
+    { id: 'overview', label: t('tab.overview') },
+    { id: 'train',    label: t('tab.train') },
+    { id: 'fuel',     label: t('tab.fuel') },
+    { id: 'recover',  label: t('tab.recover') },
+    { id: 'feel',     label: t('tab.feel') },
+  ];
 
   return (
     <div className="app">
@@ -91,8 +96,8 @@ function DesktopDashboard({ unit, user, goals, onLogout, onSettings }) {
       <div style={{ height: 16 }} />
 
       <div className="tabs">
-        {TABS.map((t) => (
-          <Tab key={t.id} active={tab === t.id} onClick={() => setTab(t.id)}>{t.label}</Tab>
+        {TABS.map((tb) => (
+          <Tab key={tb.id} active={tab === tb.id} onClick={() => setTab(tb.id)}>{tb.label}</Tab>
         ))}
       </div>
 
@@ -159,6 +164,7 @@ function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
   const [meals, setMeals] = useState([]);
   const [workout, setWorkout] = useState(null);
   const [water, setWater] = useState(0);
+  const t = useT();
 
   useEffect(() => {
     if (tab !== 'home') return;
@@ -188,6 +194,14 @@ function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
   const G = goals || GOALS;
   const today = DAYS.find((d) => d.isToday);
   const greetDate = today ? `${today.weekday} · ${today.month} ${today.day}` : 'TODAY';
+
+  const MOBILE_TABS = [
+    { id: 'home',  label: t('mtab.home'),  ico: '◐' },
+    { id: 'train', label: t('mtab.train'), ico: '▲' },
+    { id: 'fuel',  label: t('mtab.fuel'),  ico: '◆' },
+    { id: 'feel',  label: t('mtab.feel'),  ico: '❤' },
+    { id: 'stats', label: t('mtab.stats'), ico: '≡' },
+  ];
 
   return (
     <div className="m-app">
@@ -219,18 +233,18 @@ function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
           <div className="m-actions">
             <button className="m-action m-action-primary" onClick={() => setTab('train')}>
               <span className="m-action-ico">⏵</span>
-              <span>START WORKOUT</span>
+              <span>{t('home.action.workout')}</span>
             </button>
             <button className="m-action" onClick={() => setTab('fuel')}>
               <span className="m-action-ico">+</span>
-              <span>LOG MEAL</span>
+              <span>{t('home.action.meal')}</span>
             </button>
           </div>
 
           <div className="m-card">
             <div className="m-card-head">
               <div>
-                <div className="eyebrow">TODAY'S FUEL</div>
+                <div className="eyebrow">{t('home.fuel.title')}</div>
                 <div className="m-card-title">
                   {Math.round(mealTotals.cal)} <span className="m-card-unit">/ {G.calories} KCAL</span>
                 </div>
@@ -260,12 +274,12 @@ function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
           </div>
 
           <div className="m-card m-card-workout">
-            <div className="eyebrow">UP NEXT</div>
+            <div className="eyebrow">{t('home.upnext')}</div>
             {workout ? (
               <>
                 <div className="m-workout-title">{workout.name.split('—')[0].trim()}</div>
                 <div className="m-workout-sub">
-                  {workout.name.split('—')[1]?.trim() || 'Training'} · {workout.exercises.length} exercises · ~{workout.duration} min
+                  {workout.name.split('—')[1]?.trim() || t('home.training')} · {workout.exercises.length} exercises · ~{workout.duration} min
                 </div>
                 <div className="m-workout-exes">
                   {workout.exercises.map((e) => (
@@ -277,13 +291,13 @@ function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
                 </div>
               </>
             ) : (
-              <div className="m-workout-title" style={{ opacity: 0.4, fontSize: 14 }}>NO WORKOUT LOGGED</div>
+              <div className="m-workout-title" style={{ opacity: 0.4, fontSize: 14 }}>{t('home.noworkout')}</div>
             )}
           </div>
 
           <div className="m-row">
             <div className="m-card m-card-half">
-              <div className="eyebrow">WATER</div>
+              <div className="eyebrow">{t('home.water')}</div>
               <div className="m-big-num">{water}<span className="m-big-unit">/{G.water}</span></div>
               <div className="water-cups" style={{ gridTemplateColumns: 'repeat(8, 1fr)', gap: 3, marginTop: 10 }}>
                 {Array.from({ length: G.water }).map((_, i) => (
@@ -292,7 +306,7 @@ function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
               </div>
             </div>
             <div className="m-card m-card-half">
-              <div className="eyebrow">SLEEP</div>
+              <div className="eyebrow">{t('home.sleep')}</div>
               <div className="m-big-num" style={{ opacity: 0.35 }}>—</div>
             </div>
           </div>
@@ -330,20 +344,14 @@ function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
       )}
 
       <div className="m-tabbar">
-        {[
-          { id: 'home', label: 'HOME', ico: '◐' },
-          { id: 'train', label: 'TRAIN', ico: '▲' },
-          { id: 'fuel', label: 'FUEL', ico: '◆' },
-          { id: 'feel', label: 'FEEL', ico: '❤' },
-          { id: 'stats', label: 'STATS', ico: '≡' },
-        ].map((t) => (
+        {MOBILE_TABS.map((tb) => (
           <button
-            key={t.id}
-            className={`m-tab ${tab === t.id ? 'm-tab-active' : ''}`}
-            onClick={() => setTab(t.id)}
+            key={tb.id}
+            className={`m-tab ${tab === tb.id ? 'm-tab-active' : ''}`}
+            onClick={() => setTab(tb.id)}
           >
-            <span className="m-tab-ico">{t.ico}</span>
-            <span className="m-tab-label">{t.label}</span>
+            <span className="m-tab-ico">{tb.ico}</span>
+            <span className="m-tab-label">{tb.label}</span>
           </button>
         ))}
       </div>
@@ -351,7 +359,7 @@ function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
   );
 }
 
-export default function App() {
+function AppInner() {
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [unit, setUnit] = useState('kg');
@@ -359,6 +367,9 @@ export default function App() {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const [goals, setGoals] = useState(null);
   const [view, setView] = useState('dashboard');
+  const t = useT();
+  const { toggleLang } = useLang();
+  const tLang = useT(); // for the lang button label
 
   useEffect(() => {
     if (!getToken()) { setAuthChecked(true); return; }
@@ -397,9 +408,12 @@ export default function App() {
 
   if (!authChecked) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-base)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, letterSpacing: '0.1em', color: 'var(--fg-muted)' }}>CARGANDO...</div>
+      <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, letterSpacing: '0.1em', color: 'var(--fg-muted)' }}>
+        {t('app.loading')}
+      </div>
     </div>
   );
+
   if (!user) return <AuthScreen onLogin={(u) => { setUser(u); setUnit(u.unit || 'kg'); setTheme(u.theme || 'dark'); }} />;
 
   const handleLogout = () => { clearToken(); setUser(null); };
@@ -421,39 +435,22 @@ export default function App() {
     );
   }
 
+  const btnStyle = {
+    padding: '5px 12px', borderRadius: 6,
+    border: '1px solid var(--stroke)',
+    background: 'var(--bg-elev)',
+    fontFamily: 'var(--font-mono)', fontSize: 11,
+    letterSpacing: '0.1em', color: 'var(--fg-muted)',
+    cursor: 'pointer',
+  };
+
   return (
     <>
       {!isMobile && (
-        <div style={{
-          position: 'fixed', top: 12, right: 16, zIndex: 200,
-          display: 'flex', gap: 6,
-        }}>
-          <button
-            onClick={toggleUnit}
-            style={{
-              padding: '5px 12px', borderRadius: 6,
-              border: '1px solid var(--stroke)',
-              background: 'var(--bg-elev)',
-              fontFamily: 'var(--font-mono)', fontSize: 11,
-              letterSpacing: '0.1em', color: 'var(--fg-muted)',
-              cursor: 'pointer',
-            }}
-          >
-            {unit.toUpperCase()} ⇌
-          </button>
-          <button
-            onClick={toggleTheme}
-            style={{
-              padding: '5px 12px', borderRadius: 6,
-              border: '1px solid var(--stroke)',
-              background: 'var(--bg-elev)',
-              fontFamily: 'var(--font-mono)', fontSize: 11,
-              letterSpacing: '0.1em', color: 'var(--fg-muted)',
-              cursor: 'pointer',
-            }}
-          >
-            {theme === 'dark' ? '☀' : '☽'}
-          </button>
+        <div style={{ position: 'fixed', top: 12, right: 16, zIndex: 200, display: 'flex', gap: 6 }}>
+          <button onClick={toggleUnit} style={btnStyle}>{unit.toUpperCase()} ⇌</button>
+          <button onClick={toggleTheme} style={btnStyle}>{theme === 'dark' ? '☀' : '☽'}</button>
+          <button onClick={toggleLang} style={btnStyle}>{tLang('app.lang')}</button>
         </div>
       )}
 
@@ -462,5 +459,13 @@ export default function App() {
         : <DesktopDashboard unit={unit} user={user} goals={goals} onLogout={handleLogout} onSettings={handleSettings} />
       }
     </>
+  );
+}
+
+export default function App() {
+  return (
+    <LangProvider>
+      <AppInner />
+    </LangProvider>
   );
 }

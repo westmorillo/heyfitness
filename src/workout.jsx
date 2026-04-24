@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Stepper } from './primitives.jsx';
 import { getLog, putLog } from './api.js';
 import { loadRoutines } from './data.js';
+import { useT } from './LangContext.jsx';
 
 const EXERCISE_DB = [
   { id: 'x1',  name: 'Barbell Bench Press',     muscle: 'Chest' },
@@ -44,14 +45,15 @@ const EXERCISE_DB = [
 
 function RestTimer({ running, seconds, onComplete, onCancel }) {
   const [remaining, setRemaining] = useState(seconds);
+  const t = useT();
 
   useEffect(() => { setRemaining(seconds); }, [seconds, running]);
 
   useEffect(() => {
     if (!running) return;
     if (remaining <= 0) { onComplete?.(); return; }
-    const t = setTimeout(() => setRemaining((r) => r - 1), 1000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setRemaining((r) => r - 1), 1000);
+    return () => clearTimeout(timer);
   }, [remaining, running, onComplete]);
 
   if (!running) return null;
@@ -65,12 +67,12 @@ function RestTimer({ running, seconds, onComplete, onCancel }) {
       <div className="rest-timer-bar" style={{ width: `${pct}%` }} />
       <div className="rest-timer-inner">
         <div>
-          <div className="rest-label">RESTING</div>
+          <div className="rest-label">{t('workout.rest.label')}</div>
           <div className="rest-time">{mm}:{ss}</div>
         </div>
         <div className="rest-actions">
           <button className="btn-ghost-sm" onClick={() => setRemaining((r) => r + 15)}>+15s</button>
-          <button className="btn-ghost-sm" onClick={onCancel}>SKIP</button>
+          <button className="btn-ghost-sm" onClick={onCancel}>{t('workout.rest.skip')}</button>
         </div>
       </div>
     </div>
@@ -79,6 +81,7 @@ function RestTimer({ running, seconds, onComplete, onCancel }) {
 
 function AddExerciseSheet({ onAdd, onClose }) {
   const [q, setQ] = useState('');
+  const t = useT();
 
   const filtered = q.trim()
     ? EXERCISE_DB.filter((e) => e.name.toLowerCase().includes(q.toLowerCase()))
@@ -94,12 +97,12 @@ function AddExerciseSheet({ onAdd, onClose }) {
     <div className="add-ex-overlay" onClick={onClose}>
       <div className="add-ex-sheet" onClick={(ev) => ev.stopPropagation()}>
         <div className="add-ex-head">
-          <div className="eyebrow">ADD EXERCISE</div>
+          <div className="eyebrow">{t('workout.addEx.title')}</div>
           <button className="btn-ghost-sm" onClick={onClose}>✕</button>
         </div>
         <input
           className="add-ex-search"
-          placeholder="SEARCH..."
+          placeholder={t('workout.addEx.search')}
           value={q}
           onChange={(ev) => setQ(ev.target.value)}
           autoFocus
@@ -107,7 +110,7 @@ function AddExerciseSheet({ onAdd, onClose }) {
         <div className="add-ex-list">
           {Object.entries(grouped).map(([muscle, exs]) => (
             <div key={muscle}>
-              <div className="add-ex-muscle">{muscle.toUpperCase()}</div>
+              <div className="add-ex-muscle">{t(`muscle.${muscle}`)}</div>
               {exs.map((ex) => (
                 <button key={ex.id} className="add-ex-item" onClick={() => onAdd(ex)}>
                   {ex.name}
@@ -123,6 +126,7 @@ function AddExerciseSheet({ onAdd, onClose }) {
 
 function ExerciseCard({ ex, onToggleSet, onUpdateSet, onAddSet, onStartRest, unit }) {
   const [expanded, setExpanded] = useState(true);
+  const t = useT();
   const completed = ex.sets.filter((s) => s.done).length;
   const volume = ex.sets.reduce((acc, s) => acc + (s.done ? s.weight * s.reps : 0), 0);
   const allDone = completed === ex.sets.length && ex.sets.length > 0;
@@ -133,9 +137,9 @@ function ExerciseCard({ ex, onToggleSet, onUpdateSet, onAddSet, onStartRest, uni
         <div>
           <div className="exercise-name">{ex.name}</div>
           <div className="exercise-meta">
-            <span>{completed}/{ex.sets.length} SETS</span>
-            {volume > 0 && <><span className="dot" /><span>{volume.toLocaleString()} {unit} VOL</span></>}
-            {ex.pr && <><span className="dot" /><span className="pr">PR {ex.pr}{unit}</span></>}
+            <span>{t('workout.setsCount', { done: completed, total: ex.sets.length })}</span>
+            {volume > 0 && <><span className="dot" /><span>{t('workout.volText', { vol: volume.toLocaleString(), unit })}</span></>}
+            {ex.pr && <><span className="dot" /><span className="pr">{t('workout.prText', { pr: ex.pr, unit })}</span></>}
           </div>
         </div>
         <div className="exercise-chev">{expanded ? '–' : '+'}</div>
@@ -144,9 +148,9 @@ function ExerciseCard({ ex, onToggleSet, onUpdateSet, onAddSet, onStartRest, uni
       {expanded && (
         <div className="sets-table">
           <div className="sets-header">
-            <span>SET</span>
-            <span>WEIGHT ({unit})</span>
-            <span>REPS</span>
+            <span>{t('workout.col.set')}</span>
+            <span>{t('workout.col.weight', { unit })}</span>
+            <span>{t('workout.col.reps')}</span>
             <span />
           </div>
           {ex.sets.map((s, i) => (
@@ -163,7 +167,7 @@ function ExerciseCard({ ex, onToggleSet, onUpdateSet, onAddSet, onStartRest, uni
               </button>
             </div>
           ))}
-          <button className="add-set" onClick={() => onAddSet(ex.id)}>+ ADD SET</button>
+          <button className="add-set" onClick={() => onAddSet(ex.id)}>{t('workout.addSet')}</button>
         </div>
       )}
     </div>
@@ -172,6 +176,7 @@ function ExerciseCard({ ex, onToggleSet, onUpdateSet, onAddSet, onStartRest, uni
 
 function RoutinePicker({ onStart }) {
   const routines = loadRoutines();
+  const t = useT();
 
   const startRoutine = (routine) => {
     const now = Date.now();
@@ -191,7 +196,7 @@ function RoutinePicker({ onStart }) {
 
   const startEmpty = () => {
     onStart({
-      name: 'EMPTY WORKOUT',
+      name: t('workout.emptyName'),
       routineId: null,
       startedAt: Date.now(),
       exercises: [],
@@ -202,8 +207,8 @@ function RoutinePicker({ onStart }) {
     <div className="routine-picker">
       <div className="panel-head" style={{ marginBottom: 20 }}>
         <div>
-          <div className="eyebrow">TRAINING</div>
-          <div className="panel-title">CHOOSE ROUTINE</div>
+          <div className="eyebrow">{t('workout.eyebrow')}</div>
+          <div className="panel-title">{t('workout.chooseRoutine')}</div>
         </div>
       </div>
 
@@ -217,18 +222,23 @@ function RoutinePicker({ onStart }) {
                 <div key={i} className="routine-card-ex">{e.name}</div>
               ))}
               {r.exercises.length > 3 && (
-                <div className="routine-card-ex routine-card-more">+{r.exercises.length - 3} more</div>
+                <div className="routine-card-ex routine-card-more">
+                  {t('workout.moreExes', { n: r.exercises.length - 3 })}
+                </div>
               )}
             </div>
             <div className="routine-card-meta">
-              {r.exercises.length} exercises · {r.exercises.reduce((a, e) => a + e.sets.length, 0)} sets
+              {t('workout.routineMeta', {
+                exes: r.exercises.length,
+                sets: r.exercises.reduce((a, e) => a + e.sets.length, 0),
+              })}
             </div>
           </div>
         ))}
       </div>
 
       <button className="add-exercise-btn" onClick={startEmpty}>
-        + START EMPTY WORKOUT
+        {t('workout.startEmpty')}
       </button>
     </div>
   );
@@ -241,11 +251,11 @@ function useElapsed(startedAt) {
 
   useEffect(() => {
     if (!startedAt) return;
-    const t = setInterval(
+    const timer = setInterval(
       () => setElapsed(Math.max(0, Math.floor((Date.now() - startedAt) / 1000))),
       1000,
     );
-    return () => clearInterval(t);
+    return () => clearInterval(timer);
   }, [startedAt]);
 
   const h = Math.floor(elapsed / 3600);
@@ -262,6 +272,7 @@ export function WorkoutPanel({ unit = 'kg', date }) {
   const [restRunning, setRestRunning] = useState(false);
   const [showAddEx, setShowAddEx] = useState(false);
   const elapsed = useElapsed(workout?.startedAt);
+  const t = useT();
 
   useEffect(() => {
     setWorkout(null);
@@ -281,8 +292,8 @@ export function WorkoutPanel({ unit = 'kg', date }) {
 
   useEffect(() => {
     if (!workout || !date) return;
-    const t = setTimeout(() => putLog(date, { workout }).catch(() => {}), 600);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => putLog(date, { workout }).catch(() => {}), 600);
+    return () => clearTimeout(timer);
   }, [workout, date]);
 
   const toggleSet = (exId, idx) =>
@@ -358,7 +369,10 @@ export function WorkoutPanel({ unit = 'kg', date }) {
     return (
       <div className="panel workout-panel">
         <div className="panel-head">
-          <div><div className="eyebrow">TRAINING</div><div className="panel-title">LOADING...</div></div>
+          <div>
+            <div className="eyebrow">{t('workout.eyebrow')}</div>
+            <div className="panel-title">{t('workout.loading')}</div>
+          </div>
         </div>
       </div>
     );
@@ -377,7 +391,7 @@ export function WorkoutPanel({ unit = 'kg', date }) {
       <div className="panel workout-panel">
         <div className="panel-head">
           <div>
-            <div className="eyebrow">COMPLETED</div>
+            <div className="eyebrow">{t('workout.completed')}</div>
             <div className="panel-title">{workout.name}</div>
           </div>
         </div>
@@ -385,15 +399,15 @@ export function WorkoutPanel({ unit = 'kg', date }) {
           <div className="workout-summary-stats">
             <div className="stat">
               <div className="stat-num">{workout.duration ?? 0}<span className="stat-unit">MIN</span></div>
-              <div className="stat-label">DURATION</div>
+              <div className="stat-label">{t('workout.duration')}</div>
             </div>
             <div className="stat">
               <div className="stat-num">{totals.done}<span className="stat-unit">/{totals.sets}</span></div>
-              <div className="stat-label">SETS DONE</div>
+              <div className="stat-label">{t('workout.setsDone')}</div>
             </div>
             <div className="stat">
               <div className="stat-num">{totals.vol.toLocaleString()}<span className="stat-unit">{unit.toUpperCase()}</span></div>
-              <div className="stat-label">VOLUME</div>
+              <div className="stat-label">{t('workout.volume')}</div>
             </div>
           </div>
           <div className="workout-summary-exes">
@@ -406,18 +420,15 @@ export function WorkoutPanel({ unit = 'kg', date }) {
               </div>
             ))}
           </div>
-          <button
-            className="btn-primary btn-wide"
-            onClick={() => setFinished(false)}
-          >
-            EDIT WORKOUT
+          <button className="btn-primary btn-wide" onClick={() => setFinished(false)}>
+            {t('workout.editWorkout')}
           </button>
           <button
             className="add-exercise-btn"
             style={{ marginTop: 10 }}
             onClick={() => { setWorkout(null); setFinished(false); }}
           >
-            + START NEW WORKOUT
+            {t('workout.startNew')}
           </button>
         </div>
       </div>
@@ -428,21 +439,21 @@ export function WorkoutPanel({ unit = 'kg', date }) {
     <div className="panel workout-panel">
       <div className="panel-head">
         <div>
-          <div className="eyebrow">ACTIVE SESSION</div>
+          <div className="eyebrow">{t('workout.activeSession')}</div>
           <div className="panel-title">{workout.name}</div>
         </div>
         <div className="panel-stats">
           <div className="stat">
             <div className="stat-num" style={{ fontFamily: 'var(--font-mono)', fontSize: 16 }}>{elapsed}</div>
-            <div className="stat-label">ELAPSED</div>
+            <div className="stat-label">{t('workout.elapsed')}</div>
           </div>
           <div className="stat">
             <div className="stat-num">{totals.done}<span className="stat-unit">/{totals.sets}</span></div>
-            <div className="stat-label">SETS</div>
+            <div className="stat-label">{t('workout.sets')}</div>
           </div>
           <div className="stat">
             <div className="stat-num">{totals.vol.toLocaleString()}<span className="stat-unit">{unit.toUpperCase()}</span></div>
-            <div className="stat-label">VOLUME</div>
+            <div className="stat-label">{t('workout.volume')}</div>
           </div>
         </div>
       </div>
@@ -469,11 +480,15 @@ export function WorkoutPanel({ unit = 'kg', date }) {
       </div>
 
       {workout.exercises.length === 0 && (
-        <div className="empty-state">No exercises yet. Add one below.</div>
+        <div className="empty-state">{t('workout.noExercises')}</div>
       )}
 
-      <button className="add-exercise-btn" onClick={() => setShowAddEx(true)}>+ ADD EXERCISE</button>
-      <button className="btn-primary btn-wide" onClick={finishWorkout}>FINISH WORKOUT</button>
+      <button className="add-exercise-btn" onClick={() => setShowAddEx(true)}>
+        {t('workout.addExercise')}
+      </button>
+      <button className="btn-primary btn-wide" onClick={finishWorkout}>
+        {t('workout.finishWorkout')}
+      </button>
 
       {showAddEx && <AddExerciseSheet onAdd={addExercise} onClose={() => setShowAddEx(false)} />}
     </div>

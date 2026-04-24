@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Ring, Bar } from './primitives.jsx';
 import { DAYS, SLEEP_DATA, WEEK_ACTIVITY, GOALS } from './data.js';
 import { getLog, putLog } from './api.js';
+import { useT } from './LangContext.jsx';
 
 const TODAY = DAYS.find((d) => d.isToday)?.iso || new Date().toISOString().slice(0, 10);
 
@@ -24,6 +25,7 @@ export function DayStrip({ activeIso, onSelect }) {
 }
 
 export function HeroTile({ activeDay }) {
+  const t = useT();
   const today = DAYS.find((d) => d.isToday);
   const label = activeDay === today?.iso
     ? `${today.month} ${today.day} · ${today.weekday}`
@@ -32,24 +34,24 @@ export function HeroTile({ activeDay }) {
       : 'TODAY';
 
   const stats = [
-    { label: 'KCAL BURNED', val: 642 },
-    { label: 'ACTIVE MIN', val: 78 },
-    { label: 'STEPS', val: '8,412' },
-    { label: 'ZONE 2', val: '34 MIN' },
+    { labelKey: 'tile.hero.kcal',      val: 642 },
+    { labelKey: 'tile.hero.activeMin', val: 78 },
+    { labelKey: 'tile.hero.steps',     val: '8,412' },
+    { labelKey: 'tile.hero.zone2',     val: '34 MIN' },
   ];
 
   return (
     <div className="hero-tile">
       <div className="hero-meta">
         <div className="eyebrow">{label}</div>
-        <div className="hero-title">ON TRACK.</div>
-        <div className="hero-sub">You're 84% to your daily movement goal. One workout down, one meal to go.</div>
+        <div className="hero-title">{t('tile.hero.title')}</div>
+        <div className="hero-sub">{t('tile.hero.sub')}</div>
       </div>
       <div className="hero-stats">
         {stats.map((s) => (
-          <div key={s.label} className="hero-stat">
+          <div key={s.labelKey} className="hero-stat">
             <div className="hero-stat-num">{s.val}</div>
-            <div className="hero-stat-label">{s.label}</div>
+            <div className="hero-stat-label">{t(s.labelKey)}</div>
           </div>
         ))}
       </div>
@@ -58,24 +60,26 @@ export function HeroTile({ activeDay }) {
 }
 
 export function SleepTile() {
+  const t = useT();
   const total = Object.values(SLEEP_DATA.stages).reduce((a, b) => a + b, 0);
   const stages = [
-    { k: 'deep', label: 'DEEP', val: SLEEP_DATA.stages.deep, color: 'var(--accent)' },
-    { k: 'rem', label: 'REM', val: SLEEP_DATA.stages.rem, color: '#E8E4DC' },
-    { k: 'light', label: 'LIGHT', val: SLEEP_DATA.stages.light, color: '#8A8A8A' },
-    { k: 'awake', label: 'AWAKE', val: SLEEP_DATA.stages.awake, color: '#3A3A3E' },
+    { k: 'deep',  labelKey: 'tile.sleep.deep',  val: SLEEP_DATA.stages.deep,  color: 'var(--accent)' },
+    { k: 'rem',   labelKey: 'tile.sleep.rem',   val: SLEEP_DATA.stages.rem,   color: '#E8E4DC' },
+    { k: 'light', labelKey: 'tile.sleep.light', val: SLEEP_DATA.stages.light, color: '#8A8A8A' },
+    { k: 'awake', labelKey: 'tile.sleep.awake', val: SLEEP_DATA.stages.awake, color: '#3A3A3E' },
   ];
+
   return (
     <div className="tile sleep-tile">
       <div className="tile-head">
-        <div className="eyebrow">LAST NIGHT</div>
-        <div className="tile-title">SLEEP</div>
+        <div className="eyebrow">{t('tile.sleep.eyebrow')}</div>
+        <div className="tile-title">{t('tile.sleep.title')}</div>
       </div>
       <div className="sleep-num-row">
         <div className="sleep-num">{SLEEP_DATA.last}<span className="sleep-unit">h</span></div>
         <div className="sleep-times">
           <div><em>{SLEEP_DATA.bedtime}</em> → <em>{SLEEP_DATA.wake}</em></div>
-          <div className="muted">avg {SLEEP_DATA.avg}h / 7d</div>
+          <div className="muted">{t('tile.sleep.avg', { avg: SLEEP_DATA.avg })}</div>
         </div>
       </div>
       <div className="sleep-bar">
@@ -84,7 +88,7 @@ export function SleepTile() {
             key={s.k}
             className="sleep-seg"
             style={{ width: `${(s.val / total) * 100}%`, background: s.color }}
-            title={`${s.label}: ${s.val}h`}
+            title={`${t(s.labelKey)}: ${s.val}h`}
           />
         ))}
       </div>
@@ -92,7 +96,7 @@ export function SleepTile() {
         {stages.map((s) => (
           <div key={s.k} className="sleep-leg-item">
             <span className="sleep-leg-dot" style={{ background: s.color }} />
-            <span className="sleep-leg-label">{s.label}</span>
+            <span className="sleep-leg-label">{t(s.labelKey)}</span>
             <span className="sleep-leg-val">{s.val}h</span>
           </div>
         ))}
@@ -103,6 +107,7 @@ export function SleepTile() {
 
 export function WaterTile({ date }) {
   const [cups, setCups] = useState(0);
+  const t = useT();
 
   useEffect(() => {
     setCups(0);
@@ -119,10 +124,10 @@ export function WaterTile({ date }) {
   return (
     <div className="tile water-tile">
       <div className="tile-head">
-        <div className="eyebrow">HYDRATION</div>
-        <div className="tile-title">WATER</div>
+        <div className="eyebrow">{t('tile.water.eyebrow')}</div>
+        <div className="tile-title">{t('tile.water.title')}</div>
       </div>
-      <div className="water-num">{cups}<span className="tile-unit">/ {GOALS.water} CUPS</span></div>
+      <div className="water-num">{cups}<span className="tile-unit">{t('tile.water.cups', { n: GOALS.water })}</span></div>
       <div className="water-cups">
         {Array.from({ length: GOALS.water }).map((_, i) => (
           <button
@@ -138,12 +143,14 @@ export function WaterTile({ date }) {
 }
 
 export function WeekTile() {
+  const t = useT();
   const max = Math.max(...WEEK_ACTIVITY.map((w) => w.cal));
+
   return (
     <div className="tile week-tile">
       <div className="tile-head">
-        <div className="eyebrow">PAST 7 DAYS</div>
-        <div className="tile-title">MOVEMENT</div>
+        <div className="eyebrow">{t('tile.week.eyebrow')}</div>
+        <div className="tile-title">{t('tile.week.title')}</div>
       </div>
       <div className="week-bars">
         {WEEK_ACTIVITY.map((w, i) => {
@@ -164,22 +171,24 @@ export function WeekTile() {
         })}
       </div>
       <div className="week-foot">
-        <div><strong>16,840</strong> <span className="muted">KCAL TOTAL</span></div>
-        <div><strong>4</strong> <span className="muted">WORKOUTS</span></div>
+        <div><strong>16,840</strong> <span className="muted">{t('tile.week.kcal')}</span></div>
+        <div><strong>4</strong> <span className="muted">{t('tile.week.workouts')}</span></div>
       </div>
     </div>
   );
 }
 
 export function StreakTile() {
+  const t = useT();
+
   return (
     <div className="tile streak-tile">
       <div className="tile-head">
-        <div className="eyebrow">CONSISTENCY</div>
-        <div className="tile-title">STREAK</div>
+        <div className="eyebrow">{t('tile.streak.eyebrow')}</div>
+        <div className="tile-title">{t('tile.streak.title')}</div>
       </div>
-      <div className="streak-num">12<span className="tile-unit">DAYS</span></div>
-      <div className="streak-sub">Personal best: 21 days</div>
+      <div className="streak-num">12<span className="tile-unit">{t('tile.streak.days')}</span></div>
+      <div className="streak-sub">{t('tile.streak.pb', { n: 21 })}</div>
       <div className="streak-grid">
         {Array.from({ length: 28 }).map((_, i) => {
           const active = i < 12 || (i >= 14 && i < 20);

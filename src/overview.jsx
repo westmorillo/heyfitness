@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Ring, Bar } from './primitives.jsx';
 import { EMPTY_MEALS, GOALS } from './data.js';
 import { getLog } from './api.js';
+import { useT } from './LangContext.jsx';
 
 
 function MacroBar({ label, value, goal, color }) {
@@ -19,6 +20,7 @@ function MacroBar({ label, value, goal, color }) {
 export function OverviewSummary({ unit = 'lb', date }) {
   const [workout, setWorkout] = useState(null);
   const [meals, setMeals] = useState(EMPTY_MEALS);
+  const t = useT();
 
   useEffect(() => {
     setWorkout(null);
@@ -30,9 +32,9 @@ export function OverviewSummary({ unit = 'lb', date }) {
     }).catch(() => {});
   }, [date]);
 
-  const done = workout ? workout.exercises.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0) : 0;
+  const done  = workout ? workout.exercises.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0) : 0;
   const total = workout ? workout.exercises.reduce((a, e) => a + e.sets.length, 0) : 0;
-  const vol = workout ? workout.exercises.reduce(
+  const vol   = workout ? workout.exercises.reduce(
     (a, e) => a + e.sets.reduce((b, s) => b + (s.done ? s.weight * s.reps : 0), 0),
     0
   ) : 0;
@@ -53,22 +55,22 @@ export function OverviewSummary({ unit = 'lb', date }) {
       <div className="panel">
         <div className="panel-head">
           <div>
-            <div className="eyebrow">SESSION SUMMARY</div>
-            <div className="panel-title">{workout ? workout.name : 'NO SESSION YET'}</div>
+            <div className="eyebrow">{t('overview.sessionEyebrow')}</div>
+            <div className="panel-title">{workout ? workout.name : t('overview.noSession')}</div>
           </div>
           {workout && (
             <div className="panel-stats">
               <div className="stat">
                 <div className="stat-num">{workout.duration}<span className="stat-unit">MIN</span></div>
-                <div className="stat-label">ELAPSED</div>
+                <div className="stat-label">{t('overview.elapsed')}</div>
               </div>
               <div className="stat">
                 <div className="stat-num">{done}<span className="stat-unit">/{total}</span></div>
-                <div className="stat-label">SETS</div>
+                <div className="stat-label">{t('overview.sets')}</div>
               </div>
               <div className="stat">
                 <div className="stat-num">{vol.toLocaleString()}<span className="stat-unit">{unit.toUpperCase()}</span></div>
-                <div className="stat-label">VOLUME</div>
+                <div className="stat-label">{t('overview.volume')}</div>
               </div>
             </div>
           )}
@@ -81,7 +83,7 @@ export function OverviewSummary({ unit = 'lb', date }) {
                 <div key={e.id} className="overview-row">
                   <div>
                     <div className="overview-row-name">{e.name}</div>
-                    <div className="overview-row-meta">{d}/{e.targetSets} SETS · PR {e.pr}{unit}</div>
+                    <div className="overview-row-meta">{d}/{e.targetSets} {t('overview.sets')} · PR {e.pr}{unit}</div>
                   </div>
                   <div className="overview-progress">
                     <div className="overview-progress-bar">
@@ -94,15 +96,15 @@ export function OverviewSummary({ unit = 'lb', date }) {
             })}
           </div>
         ) : (
-          <div className="empty-state">No workout logged for today.</div>
+          <div className="empty-state">{t('overview.noWorkout')}</div>
         )}
       </div>
 
       <div className="panel">
         <div className="panel-head">
           <div>
-            <div className="eyebrow">NUTRITION SUMMARY</div>
-            <div className="panel-title">TODAY'S FUEL</div>
+            <div className="eyebrow">{t('overview.nutritionEyebrow')}</div>
+            <div className="panel-title">{t('overview.nutritionTitle')}</div>
           </div>
           <div className="calorie-summary">
             <Ring value={cal} max={GOALS.calories} size={120} stroke={10}>
@@ -112,25 +114,29 @@ export function OverviewSummary({ unit = 'lb', date }) {
           </div>
         </div>
         <div className="macro-grid">
-          <MacroBar label="PROTEIN" value={p} goal={GOALS.protein} color="var(--accent)" />
-          <MacroBar label="CARBS" value={c} goal={GOALS.carbs} color="#E8E4DC" />
-          <MacroBar label="FAT" value={f} goal={GOALS.fat} color="#8A8A8A" />
+          <MacroBar label={t('nutrition.protein')} value={p} goal={GOALS.protein} color="var(--accent)" />
+          <MacroBar label={t('nutrition.carbs')}   value={c} goal={GOALS.carbs}   color="#E8E4DC" />
+          <MacroBar label={t('nutrition.fat')}     value={f} goal={GOALS.fat}     color="#8A8A8A" />
         </div>
         <div className="overview-list">
           {meals.map((m) => {
             const mc = m.items.reduce((a, it) => a + it.cal * it.portion, 0);
+            const count = m.items.length;
+            const mealName = t(`meal.${m.name}`) === `meal.${m.name}` ? m.name : t(`meal.${m.name}`);
             return (
               <div key={m.id} className="overview-row">
                 <div>
                   <div className="overview-row-name">
-                    {m.name} <span className="overview-row-time">· {m.time}</span>
+                    {mealName} <span className="overview-row-time">· {m.time}</span>
                   </div>
                   <div className="overview-row-meta">
-                    {m.items.length > 0 ? `${m.items.length} item${m.items.length > 1 ? 's' : ''}` : 'Not logged'}
+                    {count > 0
+                      ? `${count} ${count === 1 ? t('overview.item') : t('overview.items')}`
+                      : t('overview.notLogged')}
                   </div>
                 </div>
                 <div className="overview-kcal">
-                  {m.items.length > 0 ? (
+                  {count > 0 ? (
                     <><strong>{Math.round(mc)}</strong><span>KCAL</span></>
                   ) : (
                     <span className="empty-text">—</span>

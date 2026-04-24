@@ -2,18 +2,21 @@ import { useState, useEffect } from 'react';
 import { SliderLine } from './primitives.jsx';
 import { DEFAULT_FEEL } from './data.js';
 import { getLog, putLog } from './api.js';
+import { useT } from './LangContext.jsx';
 
-
-const MOODS = [
-  { id: 'drained', label: 'DRAINED', ico: '😮‍💨' },
-  { id: 'low', label: 'LOW', ico: '😕' },
-  { id: 'ok', label: 'OK', ico: '😐' },
-  { id: 'good', label: 'GOOD', ico: '🙂' },
-  { id: 'fire', label: 'ON FIRE', ico: '⚡' },
-];
-
+// Data keys — these are stored in the API (feel.dig / feel.oth objects).
+// DO NOT translate these arrays; only their display labels are translated via t().
 const DIGESTIVE = ['BLOATING', 'GAS', 'REFLUX', 'CRAMPS', 'NAUSEA', 'NONE'];
-const OTHER_SYM = ['HEADACHE', 'FATIGUE', 'BRAIN FOG', 'SKIN RASH', 'JOINT PAIN', 'NONE'];
+const OTHER_SYM  = ['HEADACHE', 'FATIGUE', 'BRAIN FOG', 'SKIN RASH', 'JOINT PAIN', 'NONE'];
+
+// Mood ids are also data keys stored in feel.mood.
+const MOODS = [
+  { id: 'drained', ico: '😮‍💨' },
+  { id: 'low',     ico: '😕' },
+  { id: 'ok',      ico: '😐' },
+  { id: 'good',    ico: '🙂' },
+  { id: 'fire',    ico: '⚡' },
+];
 
 function SymptomChip({ label, state, onClick }) {
   const cls = state === 'bad' ? 'sym-chip sym-bad' : state === 'good' ? 'sym-chip sym-good' : 'sym-chip';
@@ -22,6 +25,7 @@ function SymptomChip({ label, state, onClick }) {
 
 export function FeelPanel({ date }) {
   const [feel, setFeel] = useState(DEFAULT_FEEL);
+  const t = useT();
 
   useEffect(() => {
     setFeel(DEFAULT_FEEL);
@@ -57,12 +61,12 @@ export function FeelPanel({ date }) {
       <div className="panel-head">
         <div>
           <div className="eyebrow">{dayLabel}</div>
-          <div className="panel-title">HOW DO YOU FEEL?</div>
+          <div className="panel-title">{t('feel.title')}</div>
         </div>
       </div>
 
       <div className="feel-group">
-        <div className="feel-group-label">OVERALL STATE</div>
+        <div className="feel-group-label">{t('feel.overallState')}</div>
         <div className="mood-row">
           {MOODS.map((m) => (
             <button
@@ -71,44 +75,54 @@ export function FeelPanel({ date }) {
               onClick={() => update({ mood: m.id })}
             >
               <span className="mood-ico">{m.ico}</span>
-              <span className="mood-label">{m.label}</span>
+              <span className="mood-label">{t(`feel.mood.${m.id}`)}</span>
             </button>
           ))}
         </div>
       </div>
 
       <div className="feel-group">
-        <div className="feel-group-label">DIGESTIVE SYMPTOMS</div>
+        <div className="feel-group-label">{t('feel.digestive')}</div>
         <div className="sym-grid">
           {DIGESTIVE.map((s) => (
-            <SymptomChip key={s} label={s} state={feel.dig[s]} onClick={() => toggleSym('dig', feel.dig, s)} />
+            <SymptomChip
+              key={s}
+              label={t(`feel.sym.${s}`)}
+              state={feel.dig[s]}
+              onClick={() => toggleSym('dig', feel.dig, s)}
+            />
           ))}
         </div>
-        <div className="feel-group-label feel-sublabel">OTHER SYMPTOMS</div>
+        <div className="feel-group-label feel-sublabel">{t('feel.other')}</div>
         <div className="sym-grid">
           {OTHER_SYM.map((s) => (
-            <SymptomChip key={s} label={s} state={feel.oth[s]} onClick={() => toggleSym('oth', feel.oth, s)} />
+            <SymptomChip
+              key={s}
+              label={t(`feel.sym.${s}`)}
+              state={feel.oth[s]}
+              onClick={() => toggleSym('oth', feel.oth, s)}
+            />
           ))}
         </div>
       </div>
 
       <div className="feel-group">
-        <SliderLine label="ENERGY LEVEL" value={feel.energy} onChange={(v) => update({ energy: v })} />
-        <SliderLine label="SLEEP QUALITY" value={feel.sleepQ} onChange={(v) => update({ sleepQ: v })} />
+        <SliderLine label={t('feel.energy')} value={feel.energy} onChange={(v) => update({ energy: v })} />
+        <SliderLine label={t('feel.sleepQ')} value={feel.sleepQ} onChange={(v) => update({ sleepQ: v })} />
       </div>
 
       <div className="feel-group">
-        <div className="feel-group-label">NOTES (OPTIONAL)</div>
+        <div className="feel-group-label">{t('feel.notes')}</div>
         <textarea
           className="feel-notes"
-          placeholder="e.g. 'heavy feeling after lunch, drank a lot of coffee…'"
+          placeholder={t('feel.notesPh')}
           value={feel.notes}
           onChange={(e) => update({ notes: e.target.value })}
         />
       </div>
 
       <div className="ai-insight">
-        <div className="ai-insight-head">AI · PATTERN ANALYSIS (LAST 14 DAYS)</div>
+        <div className="ai-insight-head">{t('feel.aiTitle')}</div>
         <div className="ai-insight-list">
           <div className="ai-item">
             <span className="ai-dot" />
@@ -132,7 +146,7 @@ export function FeelPanel({ date }) {
         </div>
       </div>
 
-      <button className="btn-primary btn-wide">SAVE &amp; ANALYZE ↗</button>
+      <button className="btn-primary btn-wide">{t('feel.saveAnalyze')}</button>
     </div>
   );
 }

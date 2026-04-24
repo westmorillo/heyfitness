@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Ring, Bar, Slider } from './primitives.jsx';
 import { EMPTY_MEALS, FOOD_DB, GOALS } from './data.js';
 import { getLog, putLog, getFoods, postFood, deleteFood } from './api.js';
+import { useT } from './LangContext.jsx';
 
 
 function MacroBar({ label, value, goal, color }) {
@@ -17,6 +18,7 @@ function MacroBar({ label, value, goal, color }) {
 }
 
 function MealItem({ item, onChange, onRemove }) {
+  const t = useT();
   const cal = Math.round(item.cal * item.portion);
   const p = +(item.p * item.portion).toFixed(1);
   const c = +(item.c * item.portion).toFixed(1);
@@ -39,23 +41,26 @@ function MealItem({ item, onChange, onRemove }) {
         <span><em>P</em> {p}g</span>
         <span><em>C</em> {c}g</span>
         <span><em>F</em> {f}g</span>
-        <button className="meal-remove" onClick={onRemove}>REMOVE</button>
+        <button className="meal-remove" onClick={onRemove}>{t('nutrition.remove')}</button>
       </div>
     </div>
   );
 }
 
 function MealCard({ meal, onUpdateItem, onRemoveItem, onOpenSearch }) {
+  const t = useT();
   const totals = meal.items.reduce(
     (acc, it) => ({ cal: acc.cal + it.cal * it.portion, p: acc.p + it.p * it.portion }),
     { cal: 0, p: 0 }
   );
+  // Translate meal name if a key exists, otherwise show as-is
+  const mealName = t(`meal.${meal.name}`) === `meal.${meal.name}` ? meal.name : t(`meal.${meal.name}`);
 
   return (
     <div className="meal-card">
       <div className="meal-card-head">
         <div>
-          <div className="meal-card-title">{meal.name}</div>
+          <div className="meal-card-title">{mealName}</div>
           <div className="meal-card-time">{meal.time}</div>
         </div>
         <div className="meal-card-summary">
@@ -65,7 +70,7 @@ function MealCard({ meal, onUpdateItem, onRemoveItem, onOpenSearch }) {
               <span className="tiny-label">KCAL · {Math.round(totals.p)}P</span>
             </>
           ) : (
-            <span className="empty-text">NOT LOGGED</span>
+            <span className="empty-text">{t('nutrition.notLogged')}</span>
           )}
         </div>
       </div>
@@ -82,7 +87,7 @@ function MealCard({ meal, onUpdateItem, onRemoveItem, onOpenSearch }) {
         </div>
       )}
       <button className="add-food-btn" onClick={() => onOpenSearch(meal.id)}>
-        + ADD FOOD
+        {t('nutrition.addFood')}
       </button>
     </div>
   );
@@ -97,6 +102,7 @@ function FoodSearch({ open, onClose, onAdd }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const t = useT();
 
   useEffect(() => {
     if (!open) { setQ(''); setShowForm(false); setForm(EMPTY_FORM); return; }
@@ -110,8 +116,8 @@ function FoodSearch({ open, onClose, onAdd }) {
 
   const results = useMemo(() => {
     if (!q.trim()) return allFoods.slice(0, 8);
-    const t = q.toLowerCase();
-    return allFoods.filter((f) => f.name.toLowerCase().includes(t) || (f.brand || '').toLowerCase().includes(t));
+    const term = q.toLowerCase();
+    return allFoods.filter((f) => f.name.toLowerCase().includes(term) || (f.brand || '').toLowerCase().includes(term));
   }, [q, allFoods]);
 
   const handleDelete = async (id) => {
@@ -151,8 +157,8 @@ function FoodSearch({ open, onClose, onAdd }) {
       <div className="search-sheet" onClick={(e) => e.stopPropagation()}>
         <div className="search-head">
           <div>
-            <div className="eyebrow">ADD FOOD</div>
-            <div className="search-title">QUICK LOG</div>
+            <div className="eyebrow">{t('nutrition.search.eyebrow')}</div>
+            <div className="search-title">{t('nutrition.search.title')}</div>
           </div>
           <button className="icon-btn" onClick={onClose} style={{ width: 32, height: 32, fontSize: 18 }}>×</button>
         </div>
@@ -162,23 +168,28 @@ function FoodSearch({ open, onClose, onAdd }) {
             <div className="search-input-wrap">
               <input
                 className="search-input"
-                placeholder="Search foods, brands..."
+                placeholder={t('nutrition.search.placeholder')}
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 autoFocus
               />
             </div>
             <div className="search-chips">
-              {['RECENT', 'CUSTOM'].map((c) => (
-                <button
-                  key={c}
-                  className={`chip ${activeTab === c ? 'chip-active' : ''}`}
-                  onClick={() => setActiveTab(c)}
-                >
-                  {c}
-                </button>
-              ))}
-              <button className="chip chip-add" onClick={() => setShowForm(true)}>+ NEW FOOD</button>
+              <button
+                className={`chip ${activeTab === 'RECENT' ? 'chip-active' : ''}`}
+                onClick={() => setActiveTab('RECENT')}
+              >
+                {t('nutrition.tab.recent')}
+              </button>
+              <button
+                className={`chip ${activeTab === 'CUSTOM' ? 'chip-active' : ''}`}
+                onClick={() => setActiveTab('CUSTOM')}
+              >
+                {t('nutrition.tab.custom')}
+              </button>
+              <button className="chip chip-add" onClick={() => setShowForm(true)}>
+                {t('nutrition.newFood')}
+              </button>
             </div>
             <div className="search-results">
               {results.map((f) => (
@@ -187,13 +198,13 @@ function FoodSearch({ open, onClose, onAdd }) {
                     <div>
                       <div className="food-name">
                         {f.name}
-                        {f.isCustom && <span className="food-custom-badge">CUSTOM</span>}
+                        {f.isCustom && <span className="food-custom-badge">{t('nutrition.customBadge')}</span>}
                       </div>
                       <div className="food-brand">{f.brand} · {f.serving}</div>
                     </div>
                     <div className="food-cal">
                       <div className="food-cal-num">{f.cal}</div>
-                      <div className="food-cal-unit">KCAL</div>
+                      <div className="food-cal-unit">{t('nutrition.kcal')}</div>
                     </div>
                   </button>
                   {f.isCustom && (
@@ -202,55 +213,57 @@ function FoodSearch({ open, onClose, onAdd }) {
                 </div>
               ))}
               {results.length === 0 && (
-                <div className="empty-state">No matches. Try creating a custom food.</div>
+                <div className="empty-state">{t('nutrition.noResults')}</div>
               )}
             </div>
           </>
         ) : (
           <div className="new-food-form">
-            <div className="new-food-form-title">NEW CUSTOM FOOD</div>
+            <div className="new-food-form-title">{t('nutrition.form.title')}</div>
             <div className="nff-row">
               <div className="nff-field nff-wide">
-                <label className="nff-label">NAME *</label>
-                <input className="nff-input" value={form.name} onChange={(e) => fSet('name', e.target.value)} placeholder="e.g. Chicken breast" />
+                <label className="nff-label">{t('nutrition.form.name')}</label>
+                <input className="nff-input" value={form.name} onChange={(e) => fSet('name', e.target.value)} placeholder={t('nutrition.form.namePh')} />
               </div>
             </div>
             <div className="nff-row">
               <div className="nff-field nff-wide">
-                <label className="nff-label">BRAND</label>
-                <input className="nff-input" value={form.brand} onChange={(e) => fSet('brand', e.target.value)} placeholder="e.g. Generic" />
+                <label className="nff-label">{t('nutrition.form.brand')}</label>
+                <input className="nff-input" value={form.brand} onChange={(e) => fSet('brand', e.target.value)} placeholder={t('nutrition.form.brandPh')} />
               </div>
               <div className="nff-field">
-                <label className="nff-label">SERVING</label>
-                <input className="nff-input" value={form.serving} onChange={(e) => fSet('serving', e.target.value)} placeholder="100g" />
+                <label className="nff-label">{t('nutrition.form.serving')}</label>
+                <input className="nff-input" value={form.serving} onChange={(e) => fSet('serving', e.target.value)} placeholder={t('nutrition.form.servingPh')} />
               </div>
             </div>
             <div className="nff-row">
               <div className="nff-field">
-                <label className="nff-label">KCAL *</label>
+                <label className="nff-label">{t('nutrition.form.kcal')}</label>
                 <input className="nff-input" type="number" min="0" value={form.cal} onChange={(e) => fSet('cal', e.target.value)} />
               </div>
               <div className="nff-field">
-                <label className="nff-label">PROTEIN (G)</label>
+                <label className="nff-label">{t('nutrition.form.protein')}</label>
                 <input className="nff-input" type="number" min="0" value={form.p} onChange={(e) => fSet('p', e.target.value)} />
               </div>
               <div className="nff-field">
-                <label className="nff-label">CARBS (G)</label>
+                <label className="nff-label">{t('nutrition.form.carbs')}</label>
                 <input className="nff-input" type="number" min="0" value={form.c} onChange={(e) => fSet('c', e.target.value)} />
               </div>
               <div className="nff-field">
-                <label className="nff-label">FAT (G)</label>
+                <label className="nff-label">{t('nutrition.form.fat')}</label>
                 <input className="nff-input" type="number" min="0" value={form.f} onChange={(e) => fSet('f', e.target.value)} />
               </div>
             </div>
             <div className="nff-actions">
-              <button className="nff-cancel" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }}>CANCEL</button>
+              <button className="nff-cancel" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }}>
+                {t('nutrition.form.cancel')}
+              </button>
               <button
                 className="btn-primary"
                 onClick={handleSaveFood}
                 disabled={saving || !form.name || !form.cal}
               >
-                {saving ? 'SAVING...' : 'SAVE FOOD'}
+                {saving ? t('nutrition.form.saving') : t('nutrition.form.save')}
               </button>
             </div>
           </div>
@@ -264,6 +277,7 @@ export function NutritionPanel({ date, goals }) {
   const [meals, setMeals] = useState(EMPTY_MEALS);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchMealId, setSearchMealId] = useState(null);
+  const t = useT();
 
   const G = goals || GOALS;
 
@@ -314,21 +328,21 @@ export function NutritionPanel({ date, goals }) {
     <div className="panel nutrition-panel">
       <div className="panel-head">
         <div>
-          <div className="eyebrow">NUTRITION</div>
-          <div className="panel-title">TODAY'S FUEL</div>
+          <div className="eyebrow">{t('nutrition.eyebrow')}</div>
+          <div className="panel-title">{t('nutrition.title')}</div>
         </div>
         <div className="calorie-summary">
           <Ring value={totals.cal} max={G.calories} size={140} stroke={12}>
             <div className="ring-num">{Math.round(remaining)}</div>
-            <div className="ring-label">KCAL LEFT</div>
+            <div className="ring-label">{t('nutrition.kcalLeft')}</div>
           </Ring>
         </div>
       </div>
 
       <div className="macro-grid">
-        <MacroBar label="PROTEIN" value={totals.p} goal={G.protein} color="var(--accent)" />
-        <MacroBar label="CARBS" value={totals.c} goal={G.carbs} color="#E8E4DC" />
-        <MacroBar label="FAT" value={totals.f} goal={G.fat} color="#8A8A8A" />
+        <MacroBar label={t('nutrition.protein')} value={totals.p} goal={G.protein} color="var(--accent)" />
+        <MacroBar label={t('nutrition.carbs')}   value={totals.c} goal={G.carbs}   color="#E8E4DC" />
+        <MacroBar label={t('nutrition.fat')}     value={totals.f} goal={G.fat}     color="#8A8A8A" />
       </div>
 
       <div className="meal-list">

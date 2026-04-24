@@ -1,19 +1,6 @@
 import { useState, useEffect } from 'react';
 import { patchMe, putGoals } from './api.js';
-
-const ACTIVITY_OPTIONS = [
-  { value: 'sedentary',   label: 'SEDENTARY',    sub: 'Little or no exercise' },
-  { value: 'light',       label: 'LIGHT',         sub: '1–3 days/week' },
-  { value: 'moderate',    label: 'MODERATE',      sub: '3–5 days/week' },
-  { value: 'active',      label: 'ACTIVE',        sub: '6–7 days/week' },
-  { value: 'very_active', label: 'VERY ACTIVE',   sub: 'Physical job or 2×/day' },
-];
-
-const OBJECTIVE_OPTIONS = [
-  { value: 'lose_fat',       label: 'LOSE FAT',       sub: '–20% calorie deficit' },
-  { value: 'maintain',       label: 'MAINTAIN',        sub: 'At TDEE' },
-  { value: 'build_muscle',   label: 'BUILD MUSCLE',    sub: '+300 kcal surplus' },
-];
+import { useT } from './LangContext.jsx';
 
 function calcGoals(profile) {
   const { weight: w, height: h, age: a, sex, activity_level, objective } = profile;
@@ -53,6 +40,8 @@ function NumInput({ label, value, onChange, unit, min = 0, step = 1 }) {
 }
 
 export function SettingsPanel({ user, unit, goals, onBack, onSaved }) {
+  const t = useT();
+
   const [profile, setProfile] = useState({
     weight: '',
     goal_weight: '',
@@ -143,15 +132,30 @@ export function SettingsPanel({ user, unit, goals, onBack, onSaved }) {
     }
   };
 
+  // Build activity and objective option arrays using translations
+  const ACTIVITY_OPTIONS = [
+    { value: 'sedentary',   label: t('settings.activity.sedentary'),   sub: t('settings.activity.sedentary.sub') },
+    { value: 'light',       label: t('settings.activity.light'),       sub: t('settings.activity.light.sub') },
+    { value: 'moderate',    label: t('settings.activity.moderate'),    sub: t('settings.activity.moderate.sub') },
+    { value: 'active',      label: t('settings.activity.active'),      sub: t('settings.activity.active.sub') },
+    { value: 'very_active', label: t('settings.activity.very_active'), sub: t('settings.activity.very_active.sub') },
+  ];
+
+  const OBJECTIVE_OPTIONS = [
+    { value: 'lose_fat',     label: t('settings.objective.lose_fat'),     sub: t('settings.objective.lose_fat.sub') },
+    { value: 'maintain',     label: t('settings.objective.maintain'),     sub: t('settings.objective.maintain.sub') },
+    { value: 'build_muscle', label: t('settings.objective.build_muscle'), sub: t('settings.objective.build_muscle.sub') },
+  ];
+
   return (
     <div className="settings-panel">
       <div className="settings-header">
-        <button className="settings-back" onClick={onBack}>← BACK</button>
-        <div className="settings-title">SETTINGS</div>
+        <button className="settings-back" onClick={onBack}>{t('settings.back')}</button>
+        <div className="settings-title">{t('settings.title')}</div>
       </div>
 
       <div className="settings-section">
-        <div className="settings-section-title">BODY METRICS</div>
+        <div className="settings-section-title">{t('settings.bodyMetrics')}</div>
 
         <div className="settings-sex-row">
           {['male', 'female'].map((s) => (
@@ -160,20 +164,20 @@ export function SettingsPanel({ user, unit, goals, onBack, onSaved }) {
               className={`settings-sex-btn ${profile.sex === s ? 'settings-sex-active' : ''}`}
               onClick={() => pSet('sex', s)}
             >
-              {s === 'male' ? 'MALE' : 'FEMALE'}
+              {s === 'male' ? t('settings.male') : t('settings.female')}
             </button>
           ))}
         </div>
 
         <div className="settings-row-2">
           <NumInput
-            label={`CURRENT WEIGHT (${unit.toUpperCase()})`}
+            label={t('settings.currentWeight', { unit: unit.toUpperCase() })}
             value={displayWeight(profile.weight)}
             onChange={(v) => pSet('weight', toKg(v))}
             step={0.1}
           />
           <NumInput
-            label={`GOAL WEIGHT (${unit.toUpperCase()})`}
+            label={t('settings.goalWeight', { unit: unit.toUpperCase() })}
             value={displayWeight(profile.goal_weight)}
             onChange={(v) => pSet('goal_weight', toKg(v))}
             step={0.1}
@@ -181,12 +185,12 @@ export function SettingsPanel({ user, unit, goals, onBack, onSaved }) {
         </div>
 
         <div className="settings-row-2">
-          <NumInput label="HEIGHT (CM)" value={profile.height} onChange={(v) => pSet('height', v)} />
-          <NumInput label="AGE" value={profile.age} onChange={(v) => pSet('age', v)} min={1} />
+          <NumInput label={t('settings.height')} value={profile.height} onChange={(v) => pSet('height', v)} />
+          <NumInput label={t('settings.age')} value={profile.age} onChange={(v) => pSet('age', v)} min={1} />
         </div>
 
         <div className="settings-field">
-          <label className="settings-label">ACTIVITY LEVEL</label>
+          <label className="settings-label">{t('settings.activityLevel')}</label>
           <div className="settings-option-list">
             {ACTIVITY_OPTIONS.map((o) => (
               <button
@@ -202,7 +206,7 @@ export function SettingsPanel({ user, unit, goals, onBack, onSaved }) {
         </div>
 
         <div className="settings-field">
-          <label className="settings-label">OBJECTIVE</label>
+          <label className="settings-label">{t('settings.objective')}</label>
           <div className="settings-option-row">
             {OBJECTIVE_OPTIONS.map((o) => (
               <button
@@ -220,24 +224,22 @@ export function SettingsPanel({ user, unit, goals, onBack, onSaved }) {
 
       <div className="settings-section">
         <div className="settings-section-title">
-          NUTRITION GOALS
-          {calculated && <span className="settings-calculated-badge">AUTO-CALCULATED</span>}
+          {t('settings.nutritionGoals')}
+          {calculated && <span className="settings-calculated-badge">{t('settings.autoCalculated')}</span>}
         </div>
 
         {calculated && (
-          <div className="settings-tdee-note">
-            Based on your metrics. Edit below to override.
-          </div>
+          <div className="settings-tdee-note">{t('settings.tdeeNote')}</div>
         )}
 
         <div className="settings-row-2">
-          <NumInput label="CALORIES (KCAL)" value={manualGoals.calories} onChange={(v) => gSet('calories', v)} />
-          <NumInput label="WATER (CUPS)" value={manualGoals.water} onChange={(v) => gSet('water', v)} />
+          <NumInput label={t('settings.calories')} value={manualGoals.calories} onChange={(v) => gSet('calories', v)} />
+          <NumInput label={t('settings.water')}    value={manualGoals.water}    onChange={(v) => gSet('water', v)} />
         </div>
         <div className="settings-row-3">
-          <NumInput label="PROTEIN (G)" value={manualGoals.protein} onChange={(v) => gSet('protein', v)} />
-          <NumInput label="CARBS (G)" value={manualGoals.carbs} onChange={(v) => gSet('carbs', v)} />
-          <NumInput label="FAT (G)" value={manualGoals.fat} onChange={(v) => gSet('fat', v)} />
+          <NumInput label={t('settings.protein')} value={manualGoals.protein} onChange={(v) => gSet('protein', v)} />
+          <NumInput label={t('settings.carbs')}   value={manualGoals.carbs}   onChange={(v) => gSet('carbs', v)} />
+          <NumInput label={t('settings.fat')}     value={manualGoals.fat}     onChange={(v) => gSet('fat', v)} />
         </div>
       </div>
 
@@ -246,7 +248,7 @@ export function SettingsPanel({ user, unit, goals, onBack, onSaved }) {
         onClick={handleSave}
         disabled={saving}
       >
-        {saving ? 'SAVING...' : saved ? 'SAVED ✓' : 'SAVE SETTINGS'}
+        {saving ? t('settings.saving') : saved ? t('settings.saved') : t('settings.save')}
       </button>
     </div>
   );

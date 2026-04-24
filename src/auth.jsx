@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { login, register, setToken } from './api.js';
+import { useT } from './LangContext.jsx';
 
 export function AuthScreen({ onLogin }) {
   const [mode, setMode] = useState('login');
@@ -8,12 +9,13 @@ export function AuthScreen({ onLogin }) {
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const t = useT();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     if (mode === 'register' && password !== confirm) {
-      return setError('Las contraseñas no coinciden');
+      return setError(t('auth.error.passwordMatch'));
     }
     setLoading(true);
     try {
@@ -22,7 +24,7 @@ export function AuthScreen({ onLogin }) {
       setToken(token);
       onLogin(user);
     } catch (err) {
-      setError(err.message || 'Error al conectar');
+      setError(err.message || t('auth.error.connect'));
     } finally {
       setLoading(false);
     }
@@ -64,7 +66,7 @@ export function AuthScreen({ onLogin }) {
                 color: mode === m ? 'var(--fg)' : 'var(--fg-muted)',
               }}
             >
-              {m === 'login' ? 'INGRESAR' : 'REGISTRARSE'}
+              {m === 'login' ? t('auth.tab.login') : t('auth.tab.register')}
             </button>
           ))}
         </div>
@@ -72,7 +74,7 @@ export function AuthScreen({ onLogin }) {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
             <label style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', color: 'var(--fg-muted)', display: 'block', marginBottom: 6 }}>
-              USUARIO
+              {t('auth.label.username')}
             </label>
             <input
               value={username}
@@ -89,7 +91,7 @@ export function AuthScreen({ onLogin }) {
 
           <div>
             <label style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', color: 'var(--fg-muted)', display: 'block', marginBottom: 6 }}>
-              CONTRASEÑA
+              {t('auth.label.password')}
             </label>
             <input
               type="password"
@@ -108,7 +110,7 @@ export function AuthScreen({ onLogin }) {
           {mode === 'register' && (
             <div>
               <label style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', color: 'var(--fg-muted)', display: 'block', marginBottom: 6 }}>
-                CONFIRMAR
+                {t('auth.label.confirm')}
               </label>
               <input
                 type="password"
@@ -147,7 +149,7 @@ export function AuthScreen({ onLogin }) {
               opacity: loading ? 0.7 : 1,
             }}
           >
-            {loading ? '...' : mode === 'login' ? 'ENTRAR' : 'CREAR CUENTA'}
+            {loading ? '...' : mode === 'login' ? t('auth.btn.login') : t('auth.btn.register')}
           </button>
         </form>
       </div>
