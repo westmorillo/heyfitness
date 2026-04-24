@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Stepper } from './primitives.jsx';
 import { getLog, putLog } from './api.js';
-import { loadRoutines } from './data.js';
+import { loadRoutines, recordWorkoutDay } from './data.js';
 import { useT } from './LangContext.jsx';
 import { getExerciseAsset } from './exerciseAssets.js';
 
@@ -422,6 +422,7 @@ export function WorkoutPanel({ unit = 'kg', date }) {
       ? Math.max(1, Math.round((Date.now() - workout.startedAt) / 60000))
       : 0;
     setWorkout((w) => ({ ...w, finishedAt: Date.now(), duration: durationMin }));
+    recordWorkoutDay(date);
     setFinished(true);
   };
 

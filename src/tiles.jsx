@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Ring, Bar } from './primitives.jsx';
-import { DAYS, SLEEP_DATA, WEEK_ACTIVITY, GOALS } from './data.js';
+import { DAYS, SLEEP_DATA, WEEK_ACTIVITY, GOALS, loadStreak } from './data.js';
 import { getLog, putLog } from './api.js';
 import { useT } from './LangContext.jsx';
 
@@ -180,6 +180,17 @@ export function WeekTile() {
 
 export function StreakTile() {
   const t = useT();
+  const [streak, setStreak] = useState(() => loadStreak());
+
+  useEffect(() => {
+    const onFocus = () => setStreak(loadStreak());
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('hf:streak-updated', () => setStreak(loadStreak()));
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('hf:streak-updated', () => setStreak(loadStreak()));
+    };
+  }, []);
 
   return (
     <div className="tile streak-tile">
@@ -187,13 +198,12 @@ export function StreakTile() {
         <div className="eyebrow">{t('tile.streak.eyebrow')}</div>
         <div className="tile-title">{t('tile.streak.title')}</div>
       </div>
-      <div className="streak-num">12<span className="tile-unit">{t('tile.streak.days')}</span></div>
-      <div className="streak-sub">{t('tile.streak.pb', { n: 21 })}</div>
+      <div className="streak-num">{streak.current}<span className="tile-unit">{t('tile.streak.days')}</span></div>
+      <div className="streak-sub">{t('tile.streak.pb', { n: streak.best })}</div>
       <div className="streak-grid">
-        {Array.from({ length: 28 }).map((_, i) => {
-          const active = i < 12 || (i >= 14 && i < 20);
-          return <div key={i} className={`streak-cell ${active ? 'streak-on' : ''}`} />;
-        })}
+        {streak.last28.map((active, i) => (
+          <div key={i} className={`streak-cell ${active ? 'streak-on' : ''}`} />
+        ))}
       </div>
     </div>
   );

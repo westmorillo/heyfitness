@@ -232,3 +232,57 @@ export function loadRoutines() {
 export function saveRoutines(routines) {
   localStorage.setItem('hf_routines', JSON.stringify(routines));
 }
+
+// --- Streak ---
+
+function loadStreakRaw() {
+  try {
+    const raw = localStorage.getItem('hf_streak');
+    return raw ? JSON.parse(raw) : { workoutDays: [], best: 0 };
+  } catch { return { workoutDays: [], best: 0 }; }
+}
+
+function saveStreakRaw(data) {
+  localStorage.setItem('hf_streak', JSON.stringify(data));
+}
+
+export function recordWorkoutDay(isoDate) {
+  const data = loadStreakRaw();
+  if (!data.workoutDays.includes(isoDate)) {
+    data.workoutDays.push(isoDate);
+  }
+  const streak = computeStreak(data.workoutDays);
+  if (streak.current > data.best) data.best = streak.current;
+  saveStreakRaw(data);
+  window.dispatchEvent(new Event('hf:streak-updated'));
+}
+
+export function computeStreak(workoutDays) {
+  const daySet = new Set(workoutDays);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let current = 0;
+  const cursor = new Date(today);
+  while (true) {
+    const iso = cursor.toISOString().slice(0, 10);
+    if (!daySet.has(iso)) break;
+    current++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  const last28 = [];
+  for (let i = 27; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    last28.push(daySet.has(d.toISOString().slice(0, 10)));
+  }
+
+  return { current, last28 };
+}
+
+export function loadStreak() {
+  const data = loadStreakRaw();
+  const { current, last28 } = computeStreak(data.workoutDays);
+  return { current, best: Math.max(data.best, current), last28 };
+}
