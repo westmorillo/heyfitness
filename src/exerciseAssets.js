@@ -47,6 +47,46 @@ export const EXERCISE_ASSETS = {
     slug: 'machine-chest-fly',
     guide: '/exercises/machine-chest-fly/guide.png',
   },
+  'Pull-Up': {
+    slug: 'pull-up',
+    guide: '/exercises/pull-up/guide.png',
+  },
+  'Dominadas (Pull-up)': {
+    slug: 'pull-up',
+    guide: '/exercises/pull-up/guide.png',
+  },
+  'Lat Pulldown': {
+    slug: 'lat-pulldown',
+    guide: '/exercises/lat-pulldown/guide.png',
+  },
+  'Jalón al Pecho': {
+    slug: 'lat-pulldown',
+    guide: '/exercises/lat-pulldown/guide.png',
+  },
+  'Barbell Row': {
+    slug: 'barbell-row',
+    guide: '/exercises/barbell-row/guide.png',
+  },
+  'Remo con Barra': {
+    slug: 'barbell-row',
+    guide: '/exercises/barbell-row/guide.png',
+  },
+  'Deadlift': {
+    slug: 'deadlift',
+    guide: '/exercises/deadlift/guide.png',
+  },
+  'Peso Muerto Convencional': {
+    slug: 'deadlift',
+    guide: '/exercises/deadlift/guide.png',
+  },
+  'Single Arm Row': {
+    slug: 'dumbbell-row',
+    guide: '/exercises/dumbbell-row/guide.png',
+  },
+  'Remo con Mancuerna': {
+    slug: 'dumbbell-row',
+    guide: '/exercises/dumbbell-row/guide.png',
+  },
   'Hammer Curl': {
     slug: 'hammer-curl-dumbbell',
     guide: '/exercises/hammer-curl-dumbbell/guide.png',
