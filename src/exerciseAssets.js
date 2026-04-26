@@ -1,106 +1,92 @@
-export const EXERCISE_ASSETS = {
-  'Barbell Bench Press': {
+const EXERCISE_ASSET_GROUPS = [
+  {
     slug: 'bench-press',
-    guide: '/exercises/bench-press/guide.png',
+    aliases: ['Barbell Bench Press', 'Press de Banca Plano', 'Press de Banca'],
   },
-  'Press de Banca Plano': {
-    slug: 'bench-press',
-    guide: '/exercises/bench-press/guide.png',
-  },
-  'Incline Barbell Press': {
+  {
     slug: 'incline-bench-press',
-    guide: '/exercises/incline-bench-press/guide.png',
+    aliases: ['Incline Barbell Press', 'Press de Banca Inclinado'],
   },
-  'Press de Banca Inclinado': {
-    slug: 'incline-bench-press',
-    guide: '/exercises/incline-bench-press/guide.png',
-  },
-  'Dumbbell Bench Press': {
+  {
     slug: 'dumbbell-bench-press',
-    guide: '/exercises/dumbbell-bench-press/guide.png',
+    aliases: ['Incline Dumbbell Press', 'Dumbbell Bench Press', 'Press de Banca con Mancuernas'],
   },
-  'Press de Banca con Mancuernas': {
-    slug: 'dumbbell-bench-press',
-    guide: '/exercises/dumbbell-bench-press/guide.png',
-  },
-  'Push-Up': {
+  {
     slug: 'push-up',
-    guide: '/exercises/push-up/guide.png',
+    aliases: ['Push-Up', 'Flexiones (Push-up)', 'Flexiones', 'Push-ups'],
   },
-  'Flexiones (Push-up)': {
-    slug: 'push-up',
-    guide: '/exercises/push-up/guide.png',
-  },
-  'Cable Fly': {
+  {
     slug: 'dumbbell-fly',
-    guide: '/exercises/dumbbell-fly/guide.png',
+    aliases: ['Cable Fly', 'Dumbbell Fly', 'Aperturas con Mancuernas'],
   },
-  'Aperturas con Mancuernas': {
-    slug: 'dumbbell-fly',
-    guide: '/exercises/dumbbell-fly/guide.png',
-  },
-  'Machine Chest Fly': {
+  {
     slug: 'machine-chest-fly',
-    guide: '/exercises/machine-chest-fly/guide.png',
+    aliases: ['Machine Chest Fly', 'Aperturas en Máquina', 'Aperturas en Maquina'],
   },
-  'Aperturas en Máquina': {
-    slug: 'machine-chest-fly',
-    guide: '/exercises/machine-chest-fly/guide.png',
-  },
-  'Pull-Up': {
+  {
     slug: 'pull-up',
-    guide: '/exercises/pull-up/guide.png',
+    aliases: ['Pull-Up', 'Dominadas (Pull-up)', 'Dominadas'],
   },
-  'Dominadas (Pull-up)': {
-    slug: 'pull-up',
-    guide: '/exercises/pull-up/guide.png',
-  },
-  'Lat Pulldown': {
+  {
     slug: 'lat-pulldown',
-    guide: '/exercises/lat-pulldown/guide.png',
+    aliases: ['Lat Pulldown', 'Jalón al Pecho', 'Jalon al Pecho'],
   },
-  'Jalón al Pecho': {
-    slug: 'lat-pulldown',
-    guide: '/exercises/lat-pulldown/guide.png',
-  },
-  'Barbell Row': {
+  {
     slug: 'barbell-row',
-    guide: '/exercises/barbell-row/guide.png',
+    aliases: ['Barbell Row', 'Remo con Barra'],
   },
-  'Remo con Barra': {
-    slug: 'barbell-row',
-    guide: '/exercises/barbell-row/guide.png',
-  },
-  'Deadlift': {
+  {
     slug: 'deadlift',
-    guide: '/exercises/deadlift/guide.png',
+    aliases: ['Deadlift', 'Peso Muerto Convencional', 'Peso Muerto'],
   },
-  'Peso Muerto Convencional': {
-    slug: 'deadlift',
-    guide: '/exercises/deadlift/guide.png',
-  },
-  'Single Arm Row': {
+  {
     slug: 'dumbbell-row',
-    guide: '/exercises/dumbbell-row/guide.png',
+    aliases: ['Single Arm Row', 'Dumbbell Row', 'Remo con Mancuerna'],
   },
-  'Remo con Mancuerna': {
-    slug: 'dumbbell-row',
-    guide: '/exercises/dumbbell-row/guide.png',
+  {
+    slug: 'overhead-press',
+    aliases: ['Overhead Press', 'Press Militar (OHP)', 'Press Militar'],
   },
-  'Hammer Curl': {
+  {
     slug: 'hammer-curl-dumbbell',
-    guide: '/exercises/hammer-curl-dumbbell/guide.png',
+    aliases: ['Hammer Curl', 'Curl Martillo'],
   },
-  'Dumbbell Curl': {
+  {
     slug: 'dumbbell-curl',
+    aliases: ['Dumbbell Curl', 'Curl con Mancuernas'],
     guide: null,
   },
-  'Concentration Curl': {
+  {
     slug: 'concentration-curl-dumbbell',
-    guide: '/exercises/concentration-curl-dumbbell/guide.png',
+    aliases: ['Concentration Curl', 'Curl Concentrado', 'Curl de Concentración', 'Curl de Concentracion'],
   },
-};
+];
+
+function guideFor(slug, guide) {
+  return guide === null ? null : (guide ?? `/exercises/${slug}/guide.png`);
+}
+
+function normalizeExerciseName(name) {
+  return String(name || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[().]/g, ' ')
+    .replace(/[-_/]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+export const EXERCISE_ASSETS = Object.fromEntries(
+  EXERCISE_ASSET_GROUPS.flatMap(({ slug, aliases, guide }) =>
+    aliases.map((name) => [name, { slug, guide: guideFor(slug, guide) }])
+  )
+);
+
+const EXERCISE_ASSETS_BY_NORMALIZED_NAME = Object.fromEntries(
+  Object.entries(EXERCISE_ASSETS).map(([name, asset]) => [normalizeExerciseName(name), asset])
+);
 
 export function getExerciseAsset(name) {
-  return EXERCISE_ASSETS[name] ?? null;
+  return EXERCISE_ASSETS[name] ?? EXERCISE_ASSETS_BY_NORMALIZED_NAME[normalizeExerciseName(name)] ?? null;
 }
