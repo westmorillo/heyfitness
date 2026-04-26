@@ -364,9 +364,9 @@ input, textarea { font-family: inherit; }
 .exercise-guide {
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  object-position: top left;
+  aspect-ratio: 3 / 2;
+  object-fit: contain;
+  object-position: center;
   border-radius: 8px;
   border: 1px solid var(--stroke-subtle);
   background: var(--bg-elev);
@@ -1201,8 +1201,8 @@ input, textarea { font-family: inherit; }
 .add-ex-thumb {
   width: 52px;
   height: 36px;
-  object-fit: cover;
-  object-position: top left;
+  object-fit: contain;
+  object-position: center;
   border-radius: 6px;
   border: 1px solid var(--stroke-subtle);
   background: var(--bg-elev-2);

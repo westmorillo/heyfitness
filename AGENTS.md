@@ -378,7 +378,7 @@ public/exercises/<exercise-slug>/guide.png
 
 Pilot image format:
 
-- Wide 16:9 PNG.
+- Wide 3:2 PNG, target size 1200x800 or larger.
 - One complete instructional poster per exercise.
 - Five movement steps left to right.
 - Spanish title and step copy baked into the image.
@@ -528,4 +528,3 @@ docker compose up -d
 | `nginx.conf` | SPA fallback, gzip, cache headers |
 | `.github/workflows/deploy.yml` | Automated deploy pipeline |
 | `.dockerignore` | Docker build exclusions |
-

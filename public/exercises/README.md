@@ -8,7 +8,7 @@ public/exercises/<exercise-slug>/guide.png
 
 Current pilot format:
 
-- Wide 16:9 PNG.
+- Wide 3:2 PNG, target size 1200x800 or larger.
 - One complete instructional poster per exercise.
 - Five left-to-right movement steps.
 - Spanish title and step copy baked into the image.
