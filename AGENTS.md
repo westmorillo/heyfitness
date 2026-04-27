@@ -190,7 +190,9 @@ Behavior:
 
 Exercise image guides:
 
-- Static image files live under `public/exercises/<exercise-slug>/guide.png`.
+- Static image files live under `public/exercises/<exercise-slug>/`.
+- `guide.png` is the full exercise sequence.
+- `preview.png` is the single-pose thumbnail for exercise lists.
 - Mapping lives in `src/exerciseAssets.js`.
 - `AddExerciseSheet` can show thumbnails when a guide exists.
 - `ExerciseCard` can show the guide image when expanded.
@@ -374,21 +376,22 @@ Current convention:
 
 ```text
 public/exercises/<exercise-slug>/guide.png
+public/exercises/<exercise-slug>/preview.png
 ```
 
-Pilot image format:
+Image format:
 
-- Wide 3:2 PNG, target size 1200x800 or larger.
-- One complete instructional poster per exercise.
-- Five movement steps left to right.
-- Spanish title and step copy baked into the image.
+- `guide.png`: wide 3:2 PNG, target size 1200x800 or larger.
+- `guide.png`: five movement steps left to right.
+- `guide.png`: no title, step numbers, labels, or written instructions inside the image.
+- `preview.png`: one single pose for compact list thumbnails.
 - Clean white/off-white background.
 - Original manga-inspired HeyFitness athlete style.
 - No existing characters, logos, or brand marks.
 
 Map exercise names to assets in `src/exerciseAssets.js`.
 
-Use stable English exercise names in app data. Use Spanish instructional copy inside generated guide images.
+Use stable English exercise names in app data. Keep titles and instructions in app text/data, not baked into new generated images.
 
 ## Dependency Graph
 

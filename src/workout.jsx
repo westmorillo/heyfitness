@@ -164,19 +164,23 @@ function AddExerciseSheet({ onAdd, onClose }) {
           {Object.entries(grouped).map(([muscle, exs]) => (
             <div key={muscle}>
               <div className="add-ex-muscle">{t(`muscle.${muscle}`)}</div>
-              {exs.map((ex) => (
-                <button key={ex.id} className="add-ex-item" onClick={() => onAdd(ex)}>
-                  {getExerciseAsset(ex.name)?.guide && (
-                    <img
-                      className="add-ex-thumb"
-                      src={getExerciseAsset(ex.name).guide}
-                      alt=""
-                      loading="lazy"
-                    />
-                  )}
-                  <span>{ex.name}</span>
-                </button>
-              ))}
+              {exs.map((ex) => {
+                const asset = getExerciseAsset(ex.name);
+                const thumb = asset?.preview || asset?.guide;
+                return (
+                  <button key={ex.id} className="add-ex-item" onClick={() => onAdd(ex)}>
+                    {thumb && (
+                      <img
+                        className="add-ex-thumb"
+                        src={thumb}
+                        alt=""
+                        loading="lazy"
+                      />
+                    )}
+                    <span>{ex.name}</span>
+                  </button>
+                );
+              })}
             </div>
           ))}
         </div>

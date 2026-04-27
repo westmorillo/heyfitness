@@ -44,6 +44,31 @@ const EXERCISE_ASSET_GROUPS = [
     aliases: ['Single Arm Row', 'Dumbbell Row', 'Remo con Mancuerna'],
   },
   {
+    slug: 'machine-row',
+    aliases: ['Seated Cable Row', 'Machine Row', 'Remo en Máquina', 'Remo en Maquina', 'Remo en Polea Baja'],
+    preview: true,
+  },
+  {
+    slug: 'hyperextensions',
+    aliases: ['Hyperextensions', 'Hiperextensiones', 'Back Extensions'],
+    preview: true,
+  },
+  {
+    slug: 'squat',
+    aliases: ['Barbell Squat', 'Sentadilla con Barra', 'Sentadilla'],
+    preview: true,
+  },
+  {
+    slug: 'front-squat',
+    aliases: ['Front Squat', 'Sentadilla Frontal'],
+    preview: true,
+  },
+  {
+    slug: 'dumbbell-squat',
+    aliases: ['Goblet Squat', 'Dumbbell Squat', 'Sentadilla con Mancuernas'],
+    preview: true,
+  },
+  {
     slug: 'overhead-press',
     aliases: ['Overhead Press', 'Press Militar (OHP)', 'Press Militar'],
   },
@@ -62,8 +87,10 @@ const EXERCISE_ASSET_GROUPS = [
   },
 ];
 
-function guideFor(slug, guide) {
-  return guide === null ? null : (guide ?? `/exercises/${slug}/guide.png`);
+function assetPathFor(slug, filename, value) {
+  if (value === null) return null;
+  if (value === undefined || value === true) return `/exercises/${slug}/${filename}`;
+  return value;
 }
 
 function normalizeExerciseName(name) {
@@ -78,8 +105,15 @@ function normalizeExerciseName(name) {
 }
 
 export const EXERCISE_ASSETS = Object.fromEntries(
-  EXERCISE_ASSET_GROUPS.flatMap(({ slug, aliases, guide }) =>
-    aliases.map((name) => [name, { slug, guide: guideFor(slug, guide) }])
+  EXERCISE_ASSET_GROUPS.flatMap(({ slug, aliases, guide, preview }) =>
+    aliases.map((name) => [
+      name,
+      {
+        slug,
+        guide: assetPathFor(slug, 'guide.png', guide),
+        preview: preview === undefined ? null : assetPathFor(slug, 'preview.png', preview),
+      },
+    ])
   )
 );
 
