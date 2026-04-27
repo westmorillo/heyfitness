@@ -108,7 +108,7 @@ function DesktopDashboard({ unit, user, goals, onLogout, onSettings }) {
           </div>
           <div className="grid-col">
             <div className="grid" style={{ gap: 12 }}>
-              <div className="grid-col"><SleepTile /></div>
+              <div className="grid-col"><SleepTile date={activeDay} /></div>
               <div className="grid-col"><WaterTile date={activeDay} /></div>
             </div>
             <WeekTile />
@@ -139,7 +139,7 @@ function DesktopDashboard({ unit, user, goals, onLogout, onSettings }) {
 
       {tab === 'recover' && (
         <div className="grid">
-          <div className="grid-col"><SleepTile /></div>
+          <div className="grid-col"><SleepTile date={activeDay} /></div>
           <div className="grid-col"><WaterTile date={activeDay} /></div>
         </div>
       )}
@@ -148,7 +148,7 @@ function DesktopDashboard({ unit, user, goals, onLogout, onSettings }) {
         <div className="grid" style={{ gridTemplateColumns: '1.2fr 1fr' }}>
           <div className="grid-col"><FeelPanel date={activeDay} /></div>
           <div className="grid-col">
-            <SleepTile />
+            <SleepTile date={activeDay} />
             <StreakTile />
           </div>
         </div>
@@ -339,7 +339,7 @@ function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
           <div style={{ height: 12 }} />
           <StreakTile />
           <div style={{ height: 12 }} />
-          <SleepTile />
+          <SleepTile date={activeDay} />
         </div>
       )}
 

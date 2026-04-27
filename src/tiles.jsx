@@ -59,48 +59,154 @@ export function HeroTile({ activeDay }) {
   );
 }
 
-export function SleepTile() {
+const STAGE_META = [
+  { k: 'deep',  labelKey: 'tile.sleep.deep',  color: 'var(--accent)' },
+  { k: 'rem',   labelKey: 'tile.sleep.rem',   color: '#E8E4DC' },
+  { k: 'light', labelKey: 'tile.sleep.light', color: '#8A8A8A' },
+  { k: 'awake', labelKey: 'tile.sleep.awake', color: '#3A3A3E' },
+];
+
+function calcTotal(bedtime, wake) {
+  const [bh, bm] = bedtime.split(':').map(Number);
+  const [wh, wm] = wake.split(':').map(Number);
+  let mins = (wh * 60 + wm) - (bh * 60 + bm);
+  if (mins <= 0) mins += 24 * 60;
+  return Math.round(mins / 6) / 10;
+}
+
+const EMPTY_SLEEP = { bedtime: '23:00', wake: '07:00', total: 8, stages: { deep: 0, rem: 0, light: 0, awake: 0 } };
+
+export function SleepTile({ date }) {
   const t = useT();
-  const total = Object.values(SLEEP_DATA.stages).reduce((a, b) => a + b, 0);
-  const stages = [
-    { k: 'deep',  labelKey: 'tile.sleep.deep',  val: SLEEP_DATA.stages.deep,  color: 'var(--accent)' },
-    { k: 'rem',   labelKey: 'tile.sleep.rem',   val: SLEEP_DATA.stages.rem,   color: '#E8E4DC' },
-    { k: 'light', labelKey: 'tile.sleep.light', val: SLEEP_DATA.stages.light, color: '#8A8A8A' },
-    { k: 'awake', labelKey: 'tile.sleep.awake', val: SLEEP_DATA.stages.awake, color: '#3A3A3E' },
-  ];
+  const [sleep, setSleep] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(null);
+
+  useEffect(() => {
+    setSleep(null);
+    if (!date) return;
+    getLog(date).then((log) => { if (log.sleep) setSleep(log.sleep); }).catch(() => {});
+  }, [date]);
+
+  const startEdit = () => {
+    setDraft(sleep ? { ...sleep, stages: { ...sleep.stages } } : { ...EMPTY_SLEEP, stages: { ...EMPTY_SLEEP.stages } });
+    setEditing(true);
+  };
+
+  const updateTime = (field, val) => {
+    setDraft((d) => {
+      const next = { ...d, [field]: val };
+      next.total = calcTotal(next.bedtime, next.wake);
+      return next;
+    });
+  };
+
+  const updateStage = (k, val) => {
+    setDraft((d) => ({ ...d, stages: { ...d.stages, [k]: Math.max(0, val) } }));
+  };
+
+  const save = () => {
+    const saved = { ...draft, total: calcTotal(draft.bedtime, draft.wake) };
+    setSleep(saved);
+    putLog(date, { sleep: saved }).catch(() => {});
+    setEditing(false);
+  };
+
+  const stagesTotal = draft ? Object.values(draft.stages).reduce((a, b) => a + b, 0) : 0;
+  const displayData = sleep || SLEEP_DATA;
+  const barTotal = Object.values(displayData.stages).reduce((a, b) => a + b, 0) || 1;
 
   return (
     <div className="tile sleep-tile">
       <div className="tile-head">
-        <div className="eyebrow">{t('tile.sleep.eyebrow')}</div>
-        <div className="tile-title">{t('tile.sleep.title')}</div>
-      </div>
-      <div className="sleep-num-row">
-        <div className="sleep-num">{SLEEP_DATA.last}<span className="sleep-unit">h</span></div>
-        <div className="sleep-times">
-          <div><em>{SLEEP_DATA.bedtime}</em> → <em>{SLEEP_DATA.wake}</em></div>
-          <div className="muted">{t('tile.sleep.avg', { avg: SLEEP_DATA.avg })}</div>
+        <div>
+          <div className="eyebrow">{t('tile.sleep.eyebrow')}</div>
+          <div className="tile-title">{t('tile.sleep.title')}</div>
         </div>
+        {!editing && (
+          <button className="sleep-edit-btn" onClick={startEdit} aria-label="edit sleep">
+            ✎
+          </button>
+        )}
       </div>
-      <div className="sleep-bar">
-        {stages.map((s) => (
-          <div
-            key={s.k}
-            className="sleep-seg"
-            style={{ width: `${(s.val / total) * 100}%`, background: s.color }}
-            title={`${t(s.labelKey)}: ${s.val}h`}
-          />
-        ))}
-      </div>
-      <div className="sleep-legend">
-        {stages.map((s) => (
-          <div key={s.k} className="sleep-leg-item">
-            <span className="sleep-leg-dot" style={{ background: s.color }} />
-            <span className="sleep-leg-label">{t(s.labelKey)}</span>
-            <span className="sleep-leg-val">{s.val}h</span>
+
+      {!editing ? (
+        <>
+          {sleep ? (
+            <>
+              <div className="sleep-num-row">
+                <div className="sleep-num">{sleep.total}<span className="sleep-unit">h</span></div>
+                <div className="sleep-times">
+                  <div><em>{sleep.bedtime}</em> → <em>{sleep.wake}</em></div>
+                </div>
+              </div>
+              <div className="sleep-bar">
+                {STAGE_META.map((s) => (
+                  <div key={s.k} className="sleep-seg"
+                    style={{ width: `${(displayData.stages[s.k] / barTotal) * 100}%`, background: s.color }}
+                    title={`${t(s.labelKey)}: ${displayData.stages[s.k]}h`}
+                  />
+                ))}
+              </div>
+              <div className="sleep-legend">
+                {STAGE_META.map((s) => (
+                  <div key={s.k} className="sleep-leg-item">
+                    <span className="sleep-leg-dot" style={{ background: s.color }} />
+                    <span className="sleep-leg-label">{t(s.labelKey)}</span>
+                    <span className="sleep-leg-val">{sleep.stages[s.k]}h</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <button className="sleep-empty" onClick={startEdit}>
+              <span className="sleep-empty-ico">🌙</span>
+              <span>{t('tile.sleep.noData')}</span>
+            </button>
+          )}
+        </>
+      ) : (
+        <div className="sleep-edit">
+          <div className="sleep-edit-times">
+            <div className="sleep-edit-field">
+              <label className="sleep-edit-label">{t('tile.sleep.bedtime')}</label>
+              <input className="sleep-time-input" type="time" value={draft.bedtime}
+                onChange={(e) => updateTime('bedtime', e.target.value)} />
+            </div>
+            <div className="sleep-edit-arrow">→</div>
+            <div className="sleep-edit-field">
+              <label className="sleep-edit-label">{t('tile.sleep.wake')}</label>
+              <input className="sleep-time-input" type="time" value={draft.wake}
+                onChange={(e) => updateTime('wake', e.target.value)} />
+            </div>
+            <div className="sleep-edit-total">
+              <span className="sleep-edit-total-num">{calcTotal(draft.bedtime, draft.wake)}</span>
+              <span className="sleep-edit-total-unit">h</span>
+            </div>
           </div>
-        ))}
-      </div>
+
+          <div className="sleep-edit-phases-head">
+            <span className="eyebrow">{t('tile.sleep.phases')}</span>
+            <span className="sleep-phases-sum">{stagesTotal.toFixed(1)}h</span>
+          </div>
+          {STAGE_META.map((s) => (
+            <div key={s.k} className="sleep-phase-row">
+              <span className="sleep-leg-dot" style={{ background: s.color }} />
+              <span className="sleep-phase-label">{t(s.labelKey)}</span>
+              <div className="sleep-phase-stepper">
+                <button className="stepper-btn" onClick={() => updateStage(s.k, +(draft.stages[s.k] - 0.1).toFixed(1))}>–</button>
+                <span className="sleep-phase-val">{draft.stages[s.k].toFixed(1)}</span>
+                <button className="stepper-btn" onClick={() => updateStage(s.k, +(draft.stages[s.k] + 0.1).toFixed(1))}>+</button>
+              </div>
+            </div>
+          ))}
+
+          <div className="sleep-edit-actions">
+            <button className="btn-ghost-sm" onClick={() => setEditing(false)}>{t('tile.sleep.cancel')}</button>
+            <button className="btn-primary" style={{ padding: '8px 20px' }} onClick={save}>{t('tile.sleep.save')}</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -248,16 +248,62 @@ input, textarea { font-family: inherit; }
 .sleep-unit { font-size: 20px; color: var(--fg-muted); }
 .sleep-times { font-family: var(--font-mono); font-size: 12px; color: var(--fg-dim); }
 .sleep-times em { font-style: normal; color: var(--fg); }
-.sleep-bar {
-  display: flex; border-radius: 4px; overflow: hidden; height: 12px; margin-bottom: 12px;
-  gap: 2px;
-}
+.sleep-bar { display: flex; border-radius: 4px; overflow: hidden; height: 12px; margin-bottom: 12px; gap: 2px; }
 .sleep-seg { border-radius: 2px; }
 .sleep-legend { display: flex; gap: 14px; flex-wrap: wrap; }
 .sleep-leg-item { display: flex; align-items: center; gap: 5px; }
-.sleep-leg-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+.sleep-leg-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; flex-shrink: 0; }
 .sleep-leg-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--fg-muted); }
 .sleep-leg-val { font-family: var(--font-mono); font-size: 11px; color: var(--fg); }
+
+.sleep-edit-btn {
+  width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--stroke);
+  font-size: 16px; display: grid; place-items: center; color: var(--fg-muted);
+  transition: all .12s ease;
+}
+.sleep-edit-btn:hover { background: var(--bg-elev-2); color: var(--fg); }
+.sleep-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 28px 16px; width: 100%;
+  border: 1px dashed var(--stroke); border-radius: 10px;
+  color: var(--fg-muted); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em;
+  transition: all .15s ease;
+}
+.sleep-empty:hover { border-color: var(--accent); color: var(--fg); }
+.sleep-empty-ico { font-size: 24px; }
+
+.sleep-edit { display: flex; flex-direction: column; gap: 12px; }
+.sleep-edit-times {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  background: var(--bg-elev-2); border-radius: 10px; padding: 12px;
+}
+.sleep-edit-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 80px; }
+.sleep-edit-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; color: var(--fg-muted); }
+.sleep-time-input {
+  width: 100%; padding: 8px 10px; background: var(--bg-elev); border: 1px solid var(--stroke);
+  border-radius: 6px; color: var(--fg); font-family: var(--font-mono); font-size: 14px;
+  outline: none; transition: border-color .15s ease;
+}
+.sleep-time-input:focus { border-color: var(--accent); }
+.sleep-edit-arrow { color: var(--fg-muted); font-size: 14px; flex-shrink: 0; }
+.sleep-edit-total { text-align: right; flex-shrink: 0; }
+.sleep-edit-total-num { font-family: var(--font-display); font-size: 32px; line-height: 1; }
+.sleep-edit-total-unit { font-family: var(--font-mono); font-size: 14px; color: var(--fg-muted); margin-left: 2px; }
+
+.sleep-edit-phases-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0 2px;
+}
+.sleep-phases-sum { font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); }
+.sleep-phase-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 2px;
+}
+.sleep-phase-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--fg-muted); flex: 1; }
+.sleep-phase-stepper { display: flex; align-items: center; gap: 6px; }
+.sleep-phase-val { font-family: var(--font-display); font-size: 15px; min-width: 34px; text-align: center; }
+
+.sleep-edit-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
 
 /* ─── WATER TILE ─────────────────────────────────────── */
 .water-num { font-family: var(--font-display); font-size: 40px; line-height: 1; margin-bottom: 14px; }
