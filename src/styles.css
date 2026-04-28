@@ -449,10 +449,17 @@ input, textarea { font-family: inherit; }
 }
 .set-check:hover { border-color: var(--accent); }
 .set-check-done { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.sets-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 8px; }
 .add-set {
   font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--fg-muted);
-  padding: 8px 0 0; display: block; width: 100%; text-align: left;
+  transition: color .15s;
 }
+.add-set:hover { color: var(--accent); }
+.remove-ex-text {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--fg-muted);
+  transition: color .15s;
+}
+.remove-ex-text:hover { color: var(--danger); }
 .add-set:hover { color: var(--accent); }
 
 /* ─── REST TIMER ─────────────────────────────────────── */

@@ -208,14 +208,7 @@ function ExerciseCard({ ex, onToggleSet, onUpdateSet, onAddSet, onStartRest, onR
             {ex.pr && <><span className="dot" /><span className="pr">{t('workout.prText', { pr: ex.pr, unit })}</span></>}
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button
-            className="ex-remove-btn"
-            onClick={(e) => { e.stopPropagation(); onRemove(ex.id); }}
-            aria-label="remove exercise"
-          >✕</button>
-          <div className="exercise-chev">{expanded ? '–' : '+'}</div>
-        </div>
+        <div className="exercise-chev">{expanded ? '–' : '+'}</div>
       </div>
 
       {expanded && (
@@ -248,7 +241,10 @@ function ExerciseCard({ ex, onToggleSet, onUpdateSet, onAddSet, onStartRest, onR
               </button>
             </div>
           ))}
-          <button className="add-set" onClick={() => onAddSet(ex.id)}>{t('workout.addSet')}</button>
+          <div className="sets-footer">
+            <button className="add-set" onClick={() => onAddSet(ex.id)}>{t('workout.addSet')}</button>
+            <button className="remove-ex-text" onClick={() => onRemove(ex.id)}>{t('workout.removeExercise')}</button>
+          </div>
         </div>
       )}
     </div>
