@@ -108,7 +108,6 @@ export function FeelPanel({ date }) {
 
       <div className="feel-group">
         <SliderLine label={t('feel.energy')} value={feel.energy} onChange={(v) => update({ energy: v })} />
-        <SliderLine label={t('feel.sleepQ')} value={feel.sleepQ} onChange={(v) => update({ sleepQ: v })} />
       </div>
 
       <div className="feel-group">
@@ -121,32 +120,6 @@ export function FeelPanel({ date }) {
         />
       </div>
 
-      <div className="ai-insight">
-        <div className="ai-insight-head">{t('feel.aiTitle')}</div>
-        <div className="ai-insight-list">
-          <div className="ai-item">
-            <span className="ai-dot" />
-            <div>
-              <strong>Possible lactose sensitivity</strong> — gas and bloating appeared 4/5 times after meals containing dairy.
-              <div className="ai-chip">72% correlation</div>
-            </div>
-          </div>
-          <div className="ai-item">
-            <span className="ai-dot" />
-            <div>
-              <strong>Sleep → energy link</strong> — your energy score drops an average of 2.3 pts when sleep score is below 6.
-            </div>
-          </div>
-          <div className="ai-item">
-            <span className="ai-dot" />
-            <div>
-              <strong>High-carb days</strong> show no significant digestive symptoms — no red flags so far.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button className="btn-primary btn-wide">{t('feel.saveAnalyze')}</button>
     </div>
   );
 }
