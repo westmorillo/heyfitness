@@ -164,6 +164,7 @@ function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
   const [meals, setMeals] = useState([]);
   const [workout, setWorkout] = useState(null);
   const [water, setWater] = useState(0);
+  const [steps, setSteps] = useState(null);
   const t = useT();
 
   useEffect(() => {
@@ -171,11 +172,13 @@ function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
     setMeals([]);
     setWorkout(null);
     setWater(0);
+    setSteps(null);
     getLog(activeDay)
       .then((log) => {
         if (log.meals?.length) setMeals(log.meals);
         if (log.workout) setWorkout(log.workout);
         if (log.water) setWater(log.water);
+        if (log.activity?.steps != null) setSteps(log.activity.steps);
       })
       .catch(() => {});
   }, [tab, activeDay]);
@@ -306,8 +309,12 @@ function MobileDashboard({ unit, user, goals, onLogout, onSettings }) {
               </div>
             </div>
             <div className="m-card m-card-half">
-              <div className="eyebrow">{t('home.sleep')}</div>
-              <div className="m-big-num" style={{ opacity: 0.35 }}>—</div>
+              <div className="eyebrow">{t('tile.hero.steps')}</div>
+              <div className="m-big-num">
+                {steps != null ? steps.toLocaleString() : <span style={{ opacity: 0.35 }}>—</span>}
+                {steps != null && <span className="m-big-unit">/{G.steps.toLocaleString()}</span>}
+              </div>
+              {steps != null && <Bar value={steps} max={G.steps} color="var(--accent)" height={4} />}
             </div>
           </div>
 

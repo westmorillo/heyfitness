@@ -173,7 +173,8 @@ input, textarea { font-family: inherit; }
   margin: 8px 0 6px;
 }
 .hero-sub { color: var(--fg-dim); max-width: 380px; }
-.hero-stats { display: flex; gap: 32px; flex-wrap: wrap; }
+.hero-stats-wrap { display: flex; align-items: flex-start; gap: 16px; }
+.hero-stats { display: flex; gap: 32px; flex-wrap: wrap; flex: 1; }
 .hero-stat-num {
   font-family: var(--font-display);
   font-size: 36px;
@@ -182,6 +183,21 @@ input, textarea { font-family: inherit; }
 }
 .hero-stat-unit { font-size: 14px; color: var(--fg-muted); margin-left: 3px; font-family: var(--font-mono); }
 .hero-stat-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; color: var(--fg-muted); margin-top: 4px; }
+
+.hero-edit { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; align-items: end; }
+.hero-edit-field { display: flex; flex-direction: column; gap: 4px; }
+.hero-edit-input {
+  width: 100%; padding: 8px 10px;
+  background: var(--bg-elev-2); border: 1px solid var(--stroke);
+  border-radius: 6px; color: var(--fg); font-family: var(--font-display); font-size: 20px;
+  outline: none; transition: border-color .15s ease;
+  -moz-appearance: textfield;
+}
+.hero-edit-input::-webkit-outer-spin-button,
+.hero-edit-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.hero-edit-input:focus { border-color: var(--accent); }
+.hero-edit-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+@media (max-width: 600px) { .hero-edit { grid-template-columns: 1fr 1fr; } }
 
 /* ─── TABS ───────────────────────────────────────────── */
 .tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }

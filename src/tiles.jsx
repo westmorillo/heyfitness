@@ -24,8 +24,14 @@ export function DayStrip({ activeIso, onSelect }) {
   );
 }
 
+const EMPTY_ACTIVITY = { kcal: 0, activeMin: 0, steps: 0, zone2Min: 0 };
+
 export function HeroTile({ activeDay }) {
   const t = useT();
+  const [activity, setActivity] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(null);
+
   const today = DAYS.find((d) => d.isToday);
   const label = activeDay === today?.iso
     ? `${today.month} ${today.day} · ${today.weekday}`
@@ -33,11 +39,32 @@ export function HeroTile({ activeDay }) {
       ? `${DAYS.find(d => d.iso === activeDay).month} ${DAYS.find(d => d.iso === activeDay).day} · ${DAYS.find(d => d.iso === activeDay).weekday}`
       : 'TODAY';
 
+  useEffect(() => {
+    setActivity(null);
+    if (!activeDay) return;
+    getLog(activeDay).then((log) => { if (log.activity) setActivity(log.activity); }).catch(() => {});
+  }, [activeDay]);
+
+  const startEdit = () => {
+    setDraft({ ...(activity || EMPTY_ACTIVITY) });
+    setEditing(true);
+  };
+
+  const save = () => {
+    const saved = { ...draft, kcal: +draft.kcal || 0, activeMin: +draft.activeMin || 0, steps: +draft.steps || 0, zone2Min: +draft.zone2Min || 0 };
+    setActivity(saved);
+    putLog(activeDay, { activity: saved }).catch(() => {});
+    setEditing(false);
+  };
+
+  const a = activity || EMPTY_ACTIVITY;
+  const fmt = (n) => n ? n.toLocaleString() : '—';
+
   const stats = [
-    { labelKey: 'tile.hero.kcal',      val: 642 },
-    { labelKey: 'tile.hero.activeMin', val: 78 },
-    { labelKey: 'tile.hero.steps',     val: '8,412' },
-    { labelKey: 'tile.hero.zone2',     val: '34 MIN' },
+    { labelKey: 'tile.hero.kcal',      val: activity ? a.kcal.toLocaleString()  : '—' },
+    { labelKey: 'tile.hero.activeMin', val: activity ? a.activeMin              : '—' },
+    { labelKey: 'tile.hero.steps',     val: activity ? a.steps.toLocaleString() : '—' },
+    { labelKey: 'tile.hero.zone2',     val: activity ? `${a.zone2Min} MIN`       : '—' },
   ];
 
   return (
@@ -47,14 +74,45 @@ export function HeroTile({ activeDay }) {
         <div className="hero-title">{t('tile.hero.title')}</div>
         <div className="hero-sub">{t('tile.hero.sub')}</div>
       </div>
-      <div className="hero-stats">
-        {stats.map((s) => (
-          <div key={s.labelKey} className="hero-stat">
-            <div className="hero-stat-num">{s.val}</div>
-            <div className="hero-stat-label">{t(s.labelKey)}</div>
+
+      {!editing ? (
+        <div className="hero-stats-wrap">
+          <div className="hero-stats">
+            {stats.map((s) => (
+              <div key={s.labelKey} className="hero-stat">
+                <div className="hero-stat-num">{s.val}</div>
+                <div className="hero-stat-label">{t(s.labelKey)}</div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+          <button className="sleep-edit-btn" onClick={startEdit} aria-label="edit activity" style={{ alignSelf: 'flex-start' }}>✎</button>
+        </div>
+      ) : (
+        <div className="hero-edit">
+          {[
+            { key: 'steps',     labelKey: 'tile.hero.steps',     placeholder: '0' },
+            { key: 'kcal',      labelKey: 'tile.hero.kcal',      placeholder: '0' },
+            { key: 'activeMin', labelKey: 'tile.hero.activeMin', placeholder: '0' },
+            { key: 'zone2Min',  labelKey: 'tile.hero.zone2',     placeholder: '0' },
+          ].map(({ key, labelKey, placeholder }) => (
+            <div key={key} className="hero-edit-field">
+              <label className="sleep-edit-label">{t(labelKey)}</label>
+              <input
+                className="hero-edit-input"
+                type="number"
+                inputMode="numeric"
+                placeholder={placeholder}
+                value={draft[key] || ''}
+                onChange={(e) => setDraft((d) => ({ ...d, [key]: e.target.value }))}
+              />
+            </div>
+          ))}
+          <div className="hero-edit-actions">
+            <button className="btn-ghost-sm" onClick={() => setEditing(false)}>{t('tile.sleep.cancel')}</button>
+            <button className="btn-primary" style={{ padding: '8px 20px' }} onClick={save}>{t('tile.sleep.save')}</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
