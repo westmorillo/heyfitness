@@ -189,7 +189,7 @@ function AddExerciseSheet({ onAdd, onClose }) {
   );
 }
 
-function ExerciseCard({ ex, onToggleSet, onUpdateSet, onAddSet, onStartRest, unit }) {
+function ExerciseCard({ ex, onToggleSet, onUpdateSet, onAddSet, onStartRest, onRemove, unit }) {
   const [expanded, setExpanded] = useState(true);
   const t = useT();
   const asset = getExerciseAsset(ex.name);
@@ -208,7 +208,14 @@ function ExerciseCard({ ex, onToggleSet, onUpdateSet, onAddSet, onStartRest, uni
             {ex.pr && <><span className="dot" /><span className="pr">{t('workout.prText', { pr: ex.pr, unit })}</span></>}
           </div>
         </div>
-        <div className="exercise-chev">{expanded ? '–' : '+'}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button
+            className="ex-remove-btn"
+            onClick={(e) => { e.stopPropagation(); onRemove(ex.id); }}
+            aria-label="remove exercise"
+          >✕</button>
+          <div className="exercise-chev">{expanded ? '–' : '+'}</div>
+        </div>
       </div>
 
       {expanded && (
@@ -248,8 +255,92 @@ function ExerciseCard({ ex, onToggleSet, onUpdateSet, onAddSet, onStartRest, uni
   );
 }
 
+function CreateRoutineView({ onSave, onCancel }) {
+  const t = useT();
+  const [name, setName] = useState('');
+  const [subtitle, setSubtitle] = useState('');
+  const [exercises, setExercises] = useState([]);
+  const [showPicker, setShowPicker] = useState(false);
+
+  const addEx = (ex) => {
+    setExercises((prev) => [...prev, { name: ex.name, sets: [{ weight: 0, reps: 10 }, { weight: 0, reps: 10 }, { weight: 0, reps: 10 }] }]);
+    setShowPicker(false);
+  };
+
+  const removeEx = (i) => setExercises((prev) => prev.filter((_, idx) => idx !== i));
+
+  const changeSets = (i, delta) => setExercises((prev) => prev.map((e, idx) => {
+    if (idx !== i) return e;
+    const count = Math.max(1, e.sets.length + delta);
+    const sets = Array.from({ length: count }, (_, si) => e.sets[si] || { weight: 0, reps: 10 });
+    return { ...e, sets };
+  }));
+
+  const save = () => {
+    if (!name.trim() || exercises.length === 0) return;
+    const routines = loadRoutines();
+    const newRoutine = {
+      id: `r${Date.now()}`,
+      name: name.trim().toUpperCase(),
+      subtitle: subtitle.trim().toUpperCase() || t('workout.customSubtitle'),
+      exercises,
+    };
+    saveRoutines([...routines, newRoutine]);
+    onSave();
+  };
+
+  return (
+    <div className="create-routine">
+      <div className="panel-head" style={{ marginBottom: 16 }}>
+        <div>
+          <div className="eyebrow">{t('workout.newRoutine')}</div>
+          <div className="panel-title">{t('workout.createRoutine')}</div>
+        </div>
+        <button className="btn-ghost-sm" onClick={onCancel}>✕</button>
+      </div>
+
+      <div className="cr-fields">
+        <input className="cr-input" placeholder={t('workout.routineNamePh')} value={name}
+          onChange={(e) => setName(e.target.value)} maxLength={40} />
+        <input className="cr-input cr-input-sub" placeholder={t('workout.routineSubPh')} value={subtitle}
+          onChange={(e) => setSubtitle(e.target.value)} maxLength={50} />
+      </div>
+
+      <div className="cr-ex-list">
+        {exercises.map((e, i) => (
+          <div key={i} className="cr-ex-row">
+            <span className="cr-ex-name">{e.name}</span>
+            <div className="cr-ex-sets">
+              <button className="stepper-btn" onClick={() => changeSets(i, -1)}>–</button>
+              <span className="cr-sets-val">{e.sets.length} {t('workout.sets')}</span>
+              <button className="stepper-btn" onClick={() => changeSets(i, +1)}>+</button>
+            </div>
+            <button className="ex-remove-btn" onClick={() => removeEx(i)}>✕</button>
+          </div>
+        ))}
+      </div>
+
+      <button className="add-exercise-btn" onClick={() => setShowPicker(true)}>
+        {t('workout.addExercise')}
+      </button>
+
+      <button
+        className="btn-primary btn-wide"
+        onClick={save}
+        disabled={!name.trim() || exercises.length === 0}
+        style={{ opacity: (!name.trim() || exercises.length === 0) ? 0.4 : 1 }}
+      >
+        {t('workout.saveRoutine')}
+      </button>
+
+      {showPicker && <AddExerciseSheet onAdd={addEx} onClose={() => setShowPicker(false)} />}
+    </div>
+  );
+}
+
 function RoutinePicker({ onStart }) {
-  const routines = loadRoutines();
+  const [routines, setRoutines] = useState(() => loadRoutines());
+  const [creating, setCreating] = useState(false);
   const t = useT();
 
   const startRoutine = (routine) => {
@@ -277,6 +368,13 @@ function RoutinePicker({ onStart }) {
     });
   };
 
+  if (creating) {
+    return <CreateRoutineView
+      onSave={() => { setRoutines(loadRoutines()); setCreating(false); }}
+      onCancel={() => setCreating(false)}
+    />;
+  }
+
   return (
     <div className="routine-picker">
       <div className="panel-head" style={{ marginBottom: 20 }}>
@@ -284,6 +382,7 @@ function RoutinePicker({ onStart }) {
           <div className="eyebrow">{t('workout.eyebrow')}</div>
           <div className="panel-title">{t('workout.chooseRoutine')}</div>
         </div>
+        <button className="btn-ghost-sm" onClick={() => setCreating(true)}>+ {t('workout.newRoutine')}</button>
       </div>
 
       <div className="routine-grid">
@@ -401,6 +500,9 @@ export function WorkoutPanel({ unit = 'kg', date }) {
         return { ...e, sets: [...e.sets, { weight: last.weight, reps: last.reps, done: false }] };
       }),
     }));
+
+  const removeExercise = (exId) =>
+    setWorkout((w) => ({ ...w, exercises: w.exercises.filter((e) => e.id !== exId) }));
 
   const addExercise = (ex) => {
     const now = Date.now();
@@ -549,6 +651,7 @@ export function WorkoutPanel({ unit = 'kg', date }) {
             onToggleSet={toggleSet}
             onUpdateSet={updateSet}
             onAddSet={addSet}
+            onRemove={removeExercise}
             onStartRest={() => setRestRunning(true)}
           />
         ))}

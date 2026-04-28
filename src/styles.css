@@ -1289,6 +1289,33 @@ input, textarea { font-family: inherit; }
 }
 .add-exercise-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+.ex-remove-btn {
+  width: 24px; height: 24px; border-radius: 4px; flex-shrink: 0;
+  font-size: 12px; color: var(--fg-muted); display: grid; place-items: center;
+  transition: all .12s ease;
+}
+.ex-remove-btn:hover { background: var(--danger); color: #fff; }
+
+/* ─── CREATE ROUTINE ─────────────────────────────────── */
+.create-routine { display: flex; flex-direction: column; gap: 12px; }
+.cr-fields { display: flex; flex-direction: column; gap: 8px; }
+.cr-input {
+  width: 100%; padding: 10px 14px;
+  background: var(--bg-elev-2); border: 1px solid var(--stroke);
+  border-radius: 8px; color: var(--fg); font-family: var(--font-display); font-size: 16px;
+  outline: none; transition: border-color .15s;
+}
+.cr-input-sub { font-family: var(--font-mono); font-size: 12px; }
+.cr-input:focus { border-color: var(--accent); }
+.cr-ex-list { display: flex; flex-direction: column; gap: 4px; }
+.cr-ex-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; background: var(--bg-elev-2); border-radius: 8px;
+}
+.cr-ex-name { flex: 1; font-size: 14px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cr-ex-sets { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.cr-sets-val { font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); min-width: 44px; text-align: center; }
+
 /* ─── EXERCISE CARD DONE STATE ───────────────────────── */
 .exercise-card-done .exercise-name { color: var(--fg-muted); }
 .exercise-card-done .exercise-head { opacity: 0.7; }
