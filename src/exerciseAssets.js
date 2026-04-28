@@ -69,6 +69,31 @@ const EXERCISE_ASSET_GROUPS = [
     preview: true,
   },
   {
+    slug: 'leg-press',
+    aliases: ['Leg Press', 'Prensa de Piernas'],
+    preview: true,
+  },
+  {
+    slug: 'lunges',
+    aliases: ['Lunges', 'Zancadas (Lunges)', 'Zancadas'],
+    preview: true,
+  },
+  {
+    slug: 'leg-extension',
+    aliases: ['Leg Extension', 'Extensión de Cuádriceps', 'Extension de Cuadriceps'],
+    preview: true,
+  },
+  {
+    slug: 'romanian-deadlift',
+    aliases: ['Romanian Deadlift', 'Peso Muerto Rumano'],
+    preview: true,
+  },
+  {
+    slug: 'hip-thrust',
+    aliases: ['Hip Thrust'],
+    preview: true,
+  },
+  {
     slug: 'overhead-press',
     aliases: ['Overhead Press', 'Press Militar (OHP)', 'Press Militar'],
   },
