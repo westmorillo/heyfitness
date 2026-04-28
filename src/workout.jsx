@@ -132,19 +132,68 @@ function RestTimer({ running, seconds, onComplete, onCancel }) {
   );
 }
 
+const MUSCLE_ALIASES = {
+  'pecho': 'Chest', 'chest': 'Chest', 'pectoral': 'Chest', 'pectorales': 'Chest',
+  'espalda': 'Back', 'back': 'Back', 'dorsal': 'Back', 'dorsales': 'Back', 'lumbar': 'Back',
+  'piernas': 'Legs', 'legs': 'Legs', 'pierna': 'Legs', 'cuadriceps': 'Legs', 'cuádriceps': 'Legs', 'femoral': 'Legs', 'femorales': 'Legs', 'glúteos': 'Legs', 'gluteos': 'Legs', 'pantorrillas': 'Legs',
+  'hombros': 'Shoulders', 'shoulders': 'Shoulders', 'hombro': 'Shoulders', 'deltoides': 'Shoulders',
+  'brazos': 'Arms', 'arms': 'Arms', 'biceps': 'Arms', 'bíceps': 'Arms', 'triceps': 'Arms', 'tríceps': 'Arms', 'antebrazo': 'Arms', 'antebrazos': 'Arms',
+  'core': 'Core', 'abdomen': 'Core', 'abdominales': 'Core', 'abs': 'Core', 'abdominal': 'Core',
+  'full body': 'Full Body', 'cuerpo completo': 'Full Body', 'fullbody': 'Full Body',
+  'cardio': 'Cardio',
+};
+
+function normalize(str) {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function searchExercises(q, db) {
+  const nq = normalize(q.trim());
+  if (!nq) return db;
+  const muscleTarget = MUSCLE_ALIASES[nq];
+  return db
+    .map((e) => {
+      const nname = normalize(e.name);
+      const nmuscle = normalize(e.muscle || '');
+      const nequip = normalize(e.equipment || '');
+      const ntype = normalize(e.type || '');
+      if (muscleTarget && e.muscle === muscleTarget) return { e, score: 10 };
+      if (nname.startsWith(nq)) return { e, score: 8 };
+      if (nname.includes(nq)) return { e, score: 6 };
+      if (nmuscle.includes(nq)) return { e, score: 4 };
+      if (nequip.includes(nq) || ntype.includes(nq)) return { e, score: 2 };
+      return null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score)
+    .map(({ e }) => e);
+}
+
 function AddExerciseSheet({ onAdd, onClose }) {
   const [q, setQ] = useState('');
   const t = useT();
 
-  const filtered = q.trim()
-    ? EXERCISE_DB.filter((e) => e.name.toLowerCase().includes(q.toLowerCase()))
-    : EXERCISE_DB;
+  const filtered = searchExercises(q, EXERCISE_DB);
+  const isSearching = q.trim().length > 0;
 
   const grouped = {};
-  filtered.forEach((e) => {
-    if (!grouped[e.muscle]) grouped[e.muscle] = [];
-    grouped[e.muscle].push(e);
-  });
+  if (!isSearching) {
+    filtered.forEach((e) => {
+      if (!grouped[e.muscle]) grouped[e.muscle] = [];
+      grouped[e.muscle].push(e);
+    });
+  }
+
+  const renderExItem = (ex) => {
+    const asset = getExerciseAsset(ex.name);
+    const thumb = asset?.preview || asset?.guide;
+    return (
+      <button key={ex.id} className="add-ex-item" onClick={() => onAdd(ex)}>
+        {thumb && <img className="add-ex-thumb" src={thumb} alt="" loading="lazy" />}
+        <span>{ex.name}</span>
+      </button>
+    );
+  };
 
   return (
     <div className="add-ex-overlay" onClick={onClose}>
@@ -161,7 +210,12 @@ function AddExerciseSheet({ onAdd, onClose }) {
           autoFocus
         />
         <div className="add-ex-list">
-          {Object.entries(grouped).map(([muscle, exs]) => (
+          {isSearching ? (
+            filtered.length > 0
+              ? filtered.map(renderExItem)
+              : <div className="add-ex-empty">{t('workout.addEx.noResults') || 'Sin resultados'}</div>
+          ) : (
+          Object.entries(grouped).map(([muscle, exs]) => (
             <div key={muscle}>
               <div className="add-ex-muscle">{t(`muscle.${muscle}`)}</div>
               {exs.map((ex) => {
@@ -182,7 +236,8 @@ function AddExerciseSheet({ onAdd, onClose }) {
                 );
               })}
             </div>
-          ))}
+          ))
+          )}
         </div>
       </div>
     </div>
